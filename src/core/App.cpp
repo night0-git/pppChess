@@ -1,4 +1,4 @@
-#include "../include/core/App.h"
+#include "../../include/core/App.hpp"
 
 App::App() : _window(sf::VideoMode({1080, 720}), "pppChess") {
     _window.setFramerateLimit(60);
