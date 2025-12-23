@@ -1,12 +1,12 @@
-#ifndef _MENU_STATE_H_
-#define _MENU_STATE_H_
+#ifndef _SETTINGS_STATE_H_
+#define _SETTINGS_STATE_H_
 
 #include "State.hpp"
 #include "../core/StateManager.hpp"
 
-class MenuState : public State {
+class SettingsState : public State {
 public:
-    explicit MenuState(Context& context);
+    explicit SettingsState(Context& context);
 
 public:
     void init() override;

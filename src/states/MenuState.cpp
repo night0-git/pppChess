@@ -1,29 +1,30 @@
 #include "../../include/states/MenuState.hpp"
+#include "../../include/states/GameState.hpp"
+#include "../../include/states/SettingsState.hpp"
 
-MenuState::MenuState(Context* context) : _context(context) {}
+MenuState::MenuState(Context& context) : _context(context), _text(_font, "Menu") {}
 
 void MenuState::init() {
-    _shape = sf::CircleShape(50.f);
+
 }
 
 void MenuState::handleEvent(const sf::Event& event) {
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->scancode == sf::Keyboard::Scancode::Enter) {
-            // TODO: Create game state
-            // GameState game = std::make_unique<GameState>(_context);
-            // TODO: Change state
-            // _context->states->pushState(std::move(game));
+            _context.states->pushState(std::make_unique<GameState>(_context), false);
+        }
+        else if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+            _context.states->pushState(std::make_unique<SettingsState>(_context));
         }
     }
-
 }
 
 void MenuState::update(float dt) {
-
+    
 }
 
 void MenuState::render(sf::RenderWindow& window) {
-    window.draw(_shape);
+    window.draw(_text);
 }
 
 void MenuState::pause() {
