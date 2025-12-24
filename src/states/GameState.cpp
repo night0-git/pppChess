@@ -28,12 +28,9 @@ void GameState::render(sf::RenderWindow& window) {
 }
 
 void GameState::pause() {
-    _context.states->pushState(std::make_unique<SettingsState>(_context), false);
+    // Stop the timer, music...?
 }
 
 void GameState::resume() {
-    _context.states->popState();
+    // ...
 }
-
-// TODO: maybe just remove the pause and resume methods because they are confusing
-// TODO: maybe each state just holds &states because window is passed to render() anyway
