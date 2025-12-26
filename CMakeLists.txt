@@ -15,14 +15,8 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SFML)
 
-add_executable(${PROJECT_NAME}
-    src/main.cpp
-    src/core/App.cpp
-    src/core/StateManager.cpp
-    src/states/MenuState.cpp
-    src/states/GameState.cpp
-    src/states/SettingsState.cpp
-)
+file(GLOB_RECURSE SRC_FILES "src/*.cpp")
+add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include")
 
