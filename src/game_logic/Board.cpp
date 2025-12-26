@@ -17,10 +17,16 @@ std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vecto
     auto srcPcs = takePieceAt(src);
     auto destPcs = takePieceAt(dest);
 
-    // Handle en passant
-    if (srcPcs->type() == PieceType::Pawn && std::abs(src.x - dest.x) == 2) {
-        int forward = (srcPcs->color() == PieceColor::Black ? 1 : -1);
-        _enPassantTarget = src + sf::Vector2i{forward, 0};
+    // Handle en passant and promoting
+    bool isPromoting  = false;
+    if (srcPcs->type() == PieceType::Pawn) {
+        if (std::abs(src.x - dest.x) == 2) {
+            int forward = (srcPcs->color() == PieceColor::Black ? 1 : -1);
+            _enPassantTarget = src + sf::Vector2i{forward, 0};
+        }
+        if (dest.x == 0 || dest.x == SIZE - 1) {
+            isPromoting = true;
+        }
     }
 
     _grid[dest.x][dest.y] = std::move(srcPcs);
@@ -42,10 +48,33 @@ std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vecto
             _grid[rookDest.x][rookDest.y] = std::move(rook);
         }
     }
+    else if (isPromoting) {
+        // TODO: input promotion type here
+        promote(dest, PieceType::Queen);
+    }
 
     return destPcs;
+}
 
-    // TODO: pawn promotion
+void Board::promote(const sf::Vector2i& sqr, PieceType type) {
+    PieceColor color = getPieceAt(sqr)->color();
+    switch(type) {
+    case PieceType::Queen:
+        _grid[sqr.x][sqr.y] = std::make_unique<Queen>(color);
+        break;
+    case PieceType::Rook:
+        _grid[sqr.x][sqr.y] = std::make_unique<Rook>(color);
+        break;
+    case PieceType::Knight:
+        _grid[sqr.x][sqr.y] = std::make_unique<Knight>(color);
+        break;
+    case PieceType::Bishop:
+        _grid[sqr.x][sqr.y] = std::make_unique<Bishop>(color);
+        break;
+    default:
+        break;
+    }
+    _grid[sqr.x][sqr.y]->setMoved();
 }
 
 bool Board::isWithinBoard(const sf::Vector2i& sqr) {
@@ -89,5 +118,5 @@ std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {
     }
     auto pcs = std::move(_grid[sqr.x][sqr.y]);
     _grid[sqr.x][sqr.y] = nullptr;
-    return std::move(pcs);
+    return pcs;
 }

@@ -12,6 +12,7 @@ public:
     Board();
 
     std::unique_ptr<Piece> movePiece(const sf::Vector2i& src, const sf::Vector2i& dest);
+    void promote(const sf::Vector2i& sqr, PieceType type);
 
 public:
     // Helpers
@@ -24,12 +25,11 @@ public:
     std::optional<sf::Vector2i> enPassantTarget() const;
     bool isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const;
 
-    // Functional
-    std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
-
 private:
     array<array<unique_ptr<Piece>, SIZE>, SIZE> _grid;
     std::optional<sf::Vector2i> _enPassantTarget;
+    // Functional
+    std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
 };
 
 #endif
