@@ -30,6 +30,7 @@ private:
     std::optional<sf::Vector2i> _enPassantTarget;
     // Functional
     std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
+    void setupDefaultBoard();
 };
 
 #endif

@@ -2,7 +2,7 @@
 #include <algorithm>
 
 Board::Board() {
-    
+    setupDefaultBoard();
 }
 
 std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
@@ -119,4 +119,32 @@ std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {
     auto pcs = std::move(_grid[sqr.x][sqr.y]);
     _grid[sqr.x][sqr.y] = nullptr;
     return pcs;
+}
+
+void Board::setupDefaultBoard() {
+    // Place pawns
+    for (int col = 0; col < SIZE; ++col) {
+        _grid[1][col] = std::make_unique<Pawn>(PieceColor::Black);
+        _grid[SIZE - 2][col] = std::make_unique<Pawn>(PieceColor::White);
+    }
+
+    // Black
+    _grid[0][0] = std::make_unique<Rook>(PieceColor::Black);
+    _grid[0][1] = std::make_unique<Knight>(PieceColor::Black);
+    _grid[0][2] = std::make_unique<Bishop>(PieceColor::Black);
+    _grid[0][3] = std::make_unique<Queen>(PieceColor::Black);
+    _grid[0][4] = std::make_unique<King>(PieceColor::Black);
+    _grid[0][5] = std::make_unique<Bishop>(PieceColor::Black);
+    _grid[0][6] = std::make_unique<Knight>(PieceColor::Black);
+    _grid[0][7] = std::make_unique<Rook>(PieceColor::Black);
+    
+    // White
+    _grid[SIZE - 1][0] = std::make_unique<Rook>(PieceColor::White);
+    _grid[SIZE - 1][1] = std::make_unique<Knight>(PieceColor::White);
+    _grid[SIZE - 1][2] = std::make_unique<Bishop>(PieceColor::White);
+    _grid[SIZE - 1][3] = std::make_unique<Queen>(PieceColor::White);
+    _grid[SIZE - 1][4] = std::make_unique<King>(PieceColor::White);
+    _grid[SIZE - 1][5] = std::make_unique<Bishop>(PieceColor::White);
+    _grid[SIZE - 1][6] = std::make_unique<Knight>(PieceColor::White);
+    _grid[SIZE - 1][7] = std::make_unique<Rook>(PieceColor::White);
 }
