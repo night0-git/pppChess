@@ -2,7 +2,6 @@
 #define _SETTINGS_STATE_H_
 
 #include "State.hpp"
-#include "../core/StateManager.hpp"
 
 class SettingsState : public State {
 public:
@@ -18,7 +17,6 @@ public:
     void resume() override;
 
 private:
-    Context& _context;
     sf::Text _text;
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
 };

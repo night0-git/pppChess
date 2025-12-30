@@ -3,8 +3,11 @@
 
 #include <SFML/Graphics.hpp>
 
+struct Context;
+
 class State {
 public:
+    explicit State(Context& context) : _context(context) {};
     virtual ~State() = default;
 
 public:
@@ -15,6 +18,9 @@ public:
 
     virtual void pause() = 0;
     virtual void resume() = 0;
+
+protected:
+    Context& _context;
 };
 
 #endif
