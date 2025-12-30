@@ -3,7 +3,7 @@
 
 #include "StateManager.hpp"
 #include <SFML/Graphics.hpp>
-#include <SFML/System/Clock.hpp>
+#include <SFML/System.hpp>
 
 class App {
 public:
@@ -12,7 +12,7 @@ public:
 
 private:
     void processEvents();
-    void update(float dt);
+    void update(sf::Time dt);
     void render();
 
 private:

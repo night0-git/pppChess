@@ -1,6 +1,7 @@
 #include "../../include/states/SettingsState.hpp"
+#include "../../include/core/StateManager.hpp"
 
-SettingsState::SettingsState(Context& context) : _context(context), _text(_font, "Settings") {}
+SettingsState::SettingsState(Context& context) : State(context), _text(_font, "Settings") {}
 
 void SettingsState::init() {
 
@@ -14,7 +15,7 @@ void SettingsState::handleEvent(const sf::Event& event) {
     }
 }
 
-void SettingsState::update(float dt) {
+void SettingsState::update(sf::Time dt) {
 
 }
 

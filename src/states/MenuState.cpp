@@ -1,8 +1,9 @@
 #include "../../include/states/MenuState.hpp"
 #include "../../include/states/GameState.hpp"
 #include "../../include/states/SettingsState.hpp"
+#include "../../include/core/StateManager.hpp"
 
-MenuState::MenuState(Context& context) : _context(context), _text(_font, "Menu") {}
+MenuState::MenuState(Context& context) : State(context), _text(_font, "Menu") {}
 
 void MenuState::init() {
 
@@ -19,7 +20,7 @@ void MenuState::handleEvent(const sf::Event& event) {
     }
 }
 
-void MenuState::update(float dt) {
+void MenuState::update(sf::Time dt) {
     
 }
 

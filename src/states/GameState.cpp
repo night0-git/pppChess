@@ -1,8 +1,9 @@
 #include "../../include/states/GameState.hpp"
 #include "../../include/states/MenuState.hpp"
 #include "../../include/states/SettingsState.hpp"
+#include "../../include/core/StateManager.hpp"
 
-GameState::GameState(Context& context) : _context(context), _text(_font, "Game") {}
+GameState::GameState(Context& context) : State(context), _text(_font, "Game") {}
 
 void GameState::init() {
 
@@ -19,7 +20,7 @@ void GameState::handleEvent(const sf::Event& event) {
     }
 }
 
-void GameState::update(float dt) {
+void GameState::update(sf::Time dt) {
 
 }
 

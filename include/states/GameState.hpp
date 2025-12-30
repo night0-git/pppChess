@@ -10,7 +10,7 @@ public:
 public:
     void init() override;
     void handleEvent(const sf::Event& event) override;
-    void update(float dt) override;
+    void update(sf::Time dt) override;
     void render(sf::RenderWindow& window) override;
 
     void pause() override;

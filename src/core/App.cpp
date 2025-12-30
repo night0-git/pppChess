@@ -14,7 +14,7 @@ void App::run() {
 
         sf::Time dt = _clock.restart();
         processEvents();
-        update(dt.asSeconds());
+        update(dt);
         render();
     }
 }
@@ -30,7 +30,7 @@ void App::processEvents() {
     }
 }
 
-void App::update(float dt) {
+void App::update(sf::Time dt) {
     if (_states.currentState()) {
         _states.currentState()->update(dt);
     }
