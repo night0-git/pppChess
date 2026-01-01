@@ -49,7 +49,7 @@ void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) cons
         }
     }
     // Draw piece
-    for (auto const& [piece, view] : _pieceViews) {
+    for (const auto& [piece, view] : _pieceViews) {
         target.draw(view, states);
     }
 }
