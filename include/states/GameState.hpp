@@ -2,6 +2,9 @@
 #define _GAME_STATE_H_
 
 #include "State.hpp"
+#include "../game_logic/Board.hpp"
+#include "../ui/views/BoardView.hpp"
+#include <memory>
 
 class GameState : public State {
 public:
@@ -17,8 +20,8 @@ public:
     void resume() override;
 
 private:
-    sf::Text _text;
-    sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
+    Board _board;
+    std::shared_ptr<ui::BoardView> _boardView;
 };
 
 #endif

@@ -1,7 +1,10 @@
 #ifndef _APP_H_
 #define _APP_H_
 
+#include "Context.hpp"
 #include "StateManager.hpp"
+#include "../ui/core/Resource.hpp"
+#include "../ui/core/ResourceManager.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
@@ -18,7 +21,9 @@ private:
 private:
     sf::RenderWindow _window;
     StateManager _states;
+    ui::ResourceManager<ui::TextureId, sf::Texture> _textures;
     Context _context;
+
     sf::Clock _clock;
 };
 

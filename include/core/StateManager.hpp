@@ -26,9 +26,4 @@ private:
     bool _isReplacing;
 };
 
-struct Context {
-    sf::RenderWindow* window;
-    StateManager* states;
-};
-
 #endif

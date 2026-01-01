@@ -5,6 +5,7 @@ App::App() : _window(sf::VideoMode({1080, 720}), "pppChess") {
     _window.setFramerateLimit(60);
     _context.window = &_window;
     _context.states = &_states;
+    _context.textures = &_textures;
     _states.pushState(std::make_unique<MenuState>(_context));
 }
 

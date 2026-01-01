@@ -2,6 +2,7 @@
 #define _BOARD_H_
 
 #include "Piece.hpp"
+#include "../core/BoardObserver.hpp"
 #include <memory>
 #include <array>
 #include <optional>
@@ -25,12 +26,21 @@ public:
     std::optional<sf::Vector2i> enPassantTarget() const;
     bool isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const;
 
+    // Notifiers
+    void boardInit();
+    void pieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest);
+    void pieceCaptured(const Piece* piece);
+    void piecePromoted(const sf::Vector2i& sqr, PieceType type);
+    void addObserver(std::shared_ptr<BoardObserver> observer);
+
 private:
     array<array<unique_ptr<Piece>, SIZE>, SIZE> _grid;
     std::optional<sf::Vector2i> _enPassantTarget;
-    // Functional
     std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
     void setupDefaultBoard();
+
+private:
+    std::vector<std::weak_ptr<BoardObserver>> _observers;
 };
 
 #endif

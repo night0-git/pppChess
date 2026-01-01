@@ -53,6 +53,15 @@ std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vecto
         promote(dest, PieceType::Queen);
     }
 
+    pieceMoved(src, dest);
+    if (destPcs) {
+        pieceCaptured(destPcs.get());
+    }
+    if (isPromoting) {
+        // insert promotion type here
+        piecePromoted(dest, PieceType::Queen);
+    }
+
     return destPcs;
 }
 
@@ -110,6 +119,57 @@ bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
         }
     }
     return false;
+}
+
+void Board::boardInit() {
+    for (auto it = _observers.begin(); it != _observers.end(); ) {
+        if (auto observer = it->lock()) {
+            observer->onBoardInit();
+            it++;
+        }
+        else {
+            it = _observers.erase(it);
+        }
+    }
+}
+
+void Board::pieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) {
+    for (auto it = _observers.begin(); it != _observers.end(); ) {
+        if (auto observer = it->lock()) {
+            observer->onPieceMoved(src, dest);
+            it++;
+        }
+        else {
+            it = _observers.erase(it);
+        }
+    }
+}
+
+void Board::pieceCaptured(const Piece* piece) {
+    for (auto it = _observers.begin(); it != _observers.end(); ) {
+        if (auto observer = it->lock()) {
+            observer->onPieceCaptured(piece);
+            it++;
+        }
+        else {
+            it = _observers.erase(it);
+        }
+    }
+}
+
+void Board::addObserver(std::shared_ptr<BoardObserver> observer) {
+    _observers.push_back(observer);
+}
+
+void Board::piecePromoted(const sf::Vector2i& sqr, PieceType type) {
+    for (auto it = _observers.begin(); it != _observers.end(); ) {
+        if (auto observer = it->lock()) {
+            observer->onPromotion(sqr, type);
+        }
+        else {
+            it = _observers.erase(it);
+        }
+    }
 }
 
 std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {

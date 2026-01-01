@@ -1,10 +1,9 @@
 #ifndef _STATE_H_
 #define _STATE_H_
 
+#include "../core/Context.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-
-struct Context;
 
 class State {
 public:
