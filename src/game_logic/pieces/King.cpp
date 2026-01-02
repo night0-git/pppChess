@@ -8,46 +8,50 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
     std::vector<sf::Vector2i> validMoves;
     validMoves.reserve(8);
 
-    std::array<sf::Vector2i, 8> dirs = {{
+    static std::array<sf::Vector2i, 8> offsets = {{
         {1,  1}, {1,  0}, {1, -1}, {0, -1}, {-1, -1}, {-1,  0}, {-1,  1}, {0,  1}
     }};
 
-    for (const auto& dir : dirs) {
-        sf::Vector2i move = sqr + dir;
-        if (board.isValidMove(_color, move) && !board.isCheckedSqr(_color, sqr)) {
+    for (const auto& offset : offsets) {
+        sf::Vector2i move = sqr + offset;
+        if (board.isValidMove(_color, move) && !board.isAttackedSqr(_color, move)) {
             validMoves.push_back(move);
         }
     }
 
     // Castling moves
-    if (!_hasMoved) {
-        if (board.isValidMove(_color, sqr + dirs[3]) && !board.isCheckedSqr(_color, sqr + dirs[3]) &&
-        board.isValidMove(_color, sqr + 2 * dirs[3]) && !board.isCheckedSqr(_color, sqr + 2 * dirs[3])) {
-            sf::Vector2i move = sqr + 3 * dirs[3];
-            bool canCastle = true;
-            while (move.x > 0 && move.x < Board::SIZE - 1) {
-                if (!board.isValidMove(_color, move)) {
-                    canCastle = false;
+    if (!_hasMoved && !board.isAttackedSqr(_color, sqr)) {
+        // Queen-side castling
+        sf::Vector2i queenSideRookPos(sqr.x, 0);
+        const Piece* rookPtr = board.getPieceAt(queenSideRookPos);
+        if (rookPtr && rookPtr->type() == PieceType::Rook && rookPtr->color() == _color && !rookPtr->hasMoved()) {
+            bool pathClear = true;
+            for (int y = sqr.y - 1; y > 0; y--) {
+                sf::Vector2i currentSqr(sqr.x, y);
+                if (board.getPieceAt(currentSqr) || (y > sqr.y - 3 && board.isAttackedSqr(_color, currentSqr))) {
+                    pathClear = false;
                     break;
                 }
             }
-            if (canCastle) {
-                validMoves.push_back({sqr + 2 * dirs[3]});
+            if (pathClear) {
+                validMoves.push_back({sqr.x, sqr.y - 2});
             }
         }
 
-        if (board.isValidMove(_color, sqr + dirs[7]) && !board.isCheckedSqr(_color, sqr + dirs[7]) &&
-        board.isValidMove(_color, sqr + 2 * dirs[7]) && !board.isCheckedSqr(_color, sqr + 2 * dirs[7])) {
-            sf::Vector2i move = sqr + 3 * dirs[7];
-            bool canCastle = true;
-            while (move.x > 0 && move.x < Board::SIZE - 1) {
-                if (!board.isValidMove(_color, move)) {
-                    canCastle = false;
+        // King-side castling
+        sf::Vector2i kingSideRookPos(sqr.x, Board::SIZE - 1);
+        rookPtr = board.getPieceAt(kingSideRookPos);
+        if (rookPtr && rookPtr->type() == PieceType::Rook && rookPtr->color() == _color && !rookPtr->hasMoved()) {
+            bool pathClear = true;
+            for (int y = sqr.y + 1; y < Board::SIZE - 1; y++) {
+                sf::Vector2i currentSqr(sqr.x, y);
+                if (board.getPieceAt(currentSqr) || board.isAttackedSqr(_color, currentSqr)) {
+                    pathClear = false;
                     break;
                 }
             }
-            if (canCastle) {
-                validMoves.push_back({sqr + 2 * dirs[7]});
+            if (pathClear) {
+                validMoves.push_back({sqr.x, sqr.y + 2});
             }
         }
     }

@@ -114,11 +114,13 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, con
     auto type = MoveType::Invalid;
     auto special = SpecialMove::None;
 
-    if (!isWithinBoard(src) || !isWithinBoard(dest)) {
+    auto sourcePtr = getPieceAt(src);
+    auto destPtr = getPieceAt(dest);
+
+    if (!isWithinBoard(src) || !isWithinBoard(dest) || !isValidMove(sourcePtr->color(), dest)) {
         return std::make_pair(type, special);
     }
 
-    auto sourcePtr = getPieceAt(src);
     if (!sourcePtr) {
         return std::make_pair(type, special);
     }
@@ -128,10 +130,9 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, con
         return std::make_pair(type, special);
     }
 
-    auto destPtr = getPieceAt(dest);
     type = (destPtr ? MoveType::Capture : MoveType::Move);
 
-    bool isCastling = getPieceAt(src)->type() == PieceType::King && std::abs(dest.y - src.y) == 2;
+    bool isCastling = (sourcePtr->type() == PieceType::King && std::abs(src.y - dest.y) == 2);
     if (isCastling) {
         special = SpecialMove::Castle;
         return std::make_pair(type, special);
@@ -158,6 +159,9 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, con
 
 
 const Piece* Board::getPieceAt(const sf::Vector2i& sqr) const {
+    if (!isWithinBoard(sqr)) {
+        return nullptr;
+    }
     return _grid[sqr.x][sqr.y].get();
 }
 
@@ -165,19 +169,81 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
-    for (int i = 0; i < SIZE; i++) {
-        for (int j = 0; j < SIZE; j++) {
-            auto pcs = getPieceAt({i, j});
-            if (pcs && pcs->color() != color) {
-                auto moves = pcs->validMoves(*this, {i, j});
-                bool isCheckedSqr = find(moves.begin(), moves.end(), sqr) != moves.end();
-                if (isCheckedSqr) {
-                    return true;
-                }
-            }
+bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr) const {
+    // Knight
+    static const std::vector<sf::Vector2i> knightOffsets = {
+        {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
+    };
+    for (const auto& offset : knightOffsets) {
+        sf::Vector2i pos = sqr + offset;
+        if (!isValidMove(color, pos)) continue;
+        auto piece = getPieceAt(pos);
+        if (piece && piece->type() == PieceType::Knight) {
+            return true; // Found an attacking knight
         }
     }
+
+    // Pawn
+    int forward = (color == PieceColor::White ? -1 : 1); 
+    std::vector<sf::Vector2i> pawnAttacks = {
+        {sqr.x + forward, sqr.y + 1},
+        {sqr.x + forward, sqr.y - 1}
+    };
+    for (const auto& pos : pawnAttacks) {
+        if (!isValidMove(color, pos)) continue;
+        auto piece = getPieceAt(pos);
+        if (piece && piece->type() == PieceType::Pawn) {
+            return true;
+        }
+    }
+
+    // Sliding check
+    static const std::vector<sf::Vector2i> orthoDirs = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+    for (const auto& dir : orthoDirs) {
+        sf::Vector2i pos = sqr + dir;
+        while (isValidMove(color, pos)) {
+            auto piece = getPieceAt(pos);
+            if (piece) {
+                // Found an enemy
+                if (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen) {
+                    return true;
+                }
+                break; // Blocked by non-attacking enemy (e.g., bishop)
+            }
+            pos += dir;
+        }
+    }
+
+    // Diagonal check
+    static const std::vector<sf::Vector2i> diagDirs = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+    for (const auto& dir : diagDirs) {
+        sf::Vector2i pos = sqr + dir;
+        while (isValidMove(color, pos)) {
+            pos += dir;
+            auto piece = getPieceAt(pos);
+            if (piece) {
+                if (piece->type() == PieceType::Bishop || piece->type() == PieceType::Queen) {
+                    return true;
+                }
+                break;
+            }
+            pos += dir;
+        }
+    }
+
+    // King
+    static const std::vector<sf::Vector2i> kingOffsets = {
+        {0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
+    };
+    for (const auto& offset : kingOffsets) {
+        sf::Vector2i pos = sqr + offset;
+        if (!isValidMove(color, pos)) continue;
+        auto piece = getPieceAt(pos);
+        if (piece && piece->type() == PieceType::King) {
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -234,7 +300,7 @@ void Board::addObserver(std::shared_ptr<BoardObserver> observer) {
 }
 
 std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {
-    if (!isWithinBoard(sqr) || !getPieceAt(sqr)) {
+    if (!getPieceAt(sqr)) {
         return nullptr;
     }
     auto pcs = std::move(_grid[sqr.x][sqr.y]);
