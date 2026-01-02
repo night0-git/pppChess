@@ -6,20 +6,26 @@
 #include <memory>
 #include <array>
 #include <optional>
+#include <vector>
+#include <utility>
 using std::array, std::unique_ptr;
+
+enum class MoveType { Move, Capture, Invalid };
+enum class SpecialMove { Castle, Promote, EnPassant, None };
 
 class Board {
 public:
     Board();
 
-    std::unique_ptr<Piece> movePiece(const sf::Vector2i& src, const sf::Vector2i& dest);
-    void promote(const sf::Vector2i& sqr, PieceType type);
+    bool movePiece(const sf::Vector2i& src, const sf::Vector2i& dest);
+    std::unique_ptr<Piece> promote(const sf::Vector2i& sqr, PieceType type);
 
 public:
     // Helpers
     static const int SIZE = 8;
     bool isValidMove(PieceColor srcColor, const sf::Vector2i& dest) const;
     static bool isWithinBoard(const sf::Vector2i& sqr);
+    std::pair<MoveType, SpecialMove> getMoveInfo(const sf::Vector2i& src, const sf::Vector2i& dest) const;
 
     // Getters
     const Piece* getPieceAt(const sf::Vector2i& sqr) const;
@@ -30,11 +36,12 @@ public:
     void boardInit();
     void pieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest);
     void pieceCaptured(const Piece* piece);
-    void piecePromoted(const sf::Vector2i& sqr, PieceType type);
+    void piecePromoted(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece);
     void addObserver(std::shared_ptr<BoardObserver> observer);
 
 private:
     array<array<unique_ptr<Piece>, SIZE>, SIZE> _grid;
+    std::vector<unique_ptr<Piece>> _capturedPieces;
     std::optional<sf::Vector2i> _enPassantTarget;
     std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
     void setupDefaultBoard();

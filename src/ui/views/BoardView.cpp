@@ -1,7 +1,50 @@
 #include "../../../include/ui/views/BoardView.hpp"
-
+#include <iostream>
+#include <stdexcept>
 ui::BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
-: _textures(textures), _board(board) {}
+: _textures(textures), _board(board), _draggedPiece(nullptr) {}
+
+void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
+    sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
+    sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
+    sf::Vector2f localPos = getTransform().getInverse().transformPoint(worldPos);
+    auto dragOffset = sf::Vector2f(-_tileSize / 2.f, -_tileSize / 2.f);
+
+    if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
+        sf::Vector2i sqr = localPosToSqr(localPos);
+        
+        if (_board.isWithinBoard(sqr)) {
+            auto pcs = _board.getPieceAt(sqr);
+            if (pcs) {
+                _draggedPiece = pcs;
+                _sourceSquare = sqr;
+                _pieceViews.at(pcs).setPosition(localPos + dragOffset);
+            }
+        }
+    }
+
+    else if (event.is<sf::Event::MouseMoved>()) {
+        if (_draggedPiece) {
+            _pieceViews.at(_draggedPiece).setPosition(localPos + dragOffset);
+        }
+    }
+
+    else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
+        if (_draggedPiece) {
+            sf::Vector2i dest = localPosToSqr(localPos);
+            bool isValidMove = false;
+            if (_onMoveRequest) {
+                if (_onMoveRequest(_sourceSquare, dest)) {
+                    isValidMove = true;
+                }
+            }
+            if (!isValidMove) {
+               _pieceViews.at(_draggedPiece).updatePosition(_sourceSquare);
+            }
+            _draggedPiece = nullptr;
+        }
+    }
+}
 
 void ui::BoardView::onBoardInit() {
     _pieceViews.clear();
@@ -30,10 +73,19 @@ void ui::BoardView::onPieceCaptured(const Piece* piece) {
     _pieceViews.erase(piece);
 }
 
-void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type) {
+void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) {
+    // Delete the old piece texture
+    _pieceViews.erase(oldPiece);
+
     auto pcs = _board.getPieceAt(sqr);
-    const sf::Texture& texture = _textures.get(ui::getTextureId(*pcs));
-    _pieceViews.insert_or_assign(pcs, PieceView(texture, _tileSize, *pcs));
+    if (pcs) {
+        const sf::Texture& texture = _textures.get(ui::getTextureId(*pcs));
+        _pieceViews.insert_or_assign(pcs, PieceView(texture, _tileSize, *pcs));
+        auto it = _pieceViews.find(pcs);
+        if (it != _pieceViews.end()) {
+            it->second.updatePosition(sqr);
+        }
+    }
 }
 
 void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
@@ -50,6 +102,20 @@ void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     }
     // Draw piece
     for (const auto& [piece, view] : _pieceViews) {
-        target.draw(view, states);
+        if (piece != _draggedPiece) {
+            target.draw(view, states);
+        }
     }
+    if (_draggedPiece) {
+        auto it = _pieceViews.find(_draggedPiece);
+        if (it != _pieceViews.end()) {
+           target.draw(_pieceViews.at(_draggedPiece), states);
+        }
+    }
+}
+
+sf::Vector2i ui::BoardView::localPosToSqr(const sf::Vector2f& localPos) const {
+    int col = static_cast<int>(localPos.x / _tileSize);
+    int row = static_cast<int>(localPos.y / _tileSize);
+    return sf::Vector2i(row, col);
 }

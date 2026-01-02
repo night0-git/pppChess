@@ -21,21 +21,6 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
 
     // Castling moves
     if (!_hasMoved) {
-        if (board.isValidMove(_color, sqr + dirs[1]) && !board.isCheckedSqr(_color, sqr + dirs[1]) &&
-        board.isValidMove(_color, sqr + 2 * dirs[1]) && !board.isCheckedSqr(_color, sqr + 2 * dirs[1])) {
-            sf::Vector2i move = sqr + 3 * dirs[1];
-            bool canCastle = true;
-            while (move.x > 0 && move.x < Board::SIZE - 1) {
-                if (!board.isValidMove(_color, move)) {
-                    canCastle = false;
-                    break;
-                }
-            }
-            if (canCastle) {
-                validMoves.push_back({sqr + 2 * dirs[1]});
-            }
-        }
-
         if (board.isValidMove(_color, sqr + dirs[3]) && !board.isCheckedSqr(_color, sqr + dirs[3]) &&
         board.isValidMove(_color, sqr + 2 * dirs[3]) && !board.isCheckedSqr(_color, sqr + 2 * dirs[3])) {
             sf::Vector2i move = sqr + 3 * dirs[3];
@@ -48,6 +33,21 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
             }
             if (canCastle) {
                 validMoves.push_back({sqr + 2 * dirs[3]});
+            }
+        }
+
+        if (board.isValidMove(_color, sqr + dirs[7]) && !board.isCheckedSqr(_color, sqr + dirs[7]) &&
+        board.isValidMove(_color, sqr + 2 * dirs[7]) && !board.isCheckedSqr(_color, sqr + 2 * dirs[7])) {
+            sf::Vector2i move = sqr + 3 * dirs[7];
+            bool canCastle = true;
+            while (move.x > 0 && move.x < Board::SIZE - 1) {
+                if (!board.isValidMove(_color, move)) {
+                    canCastle = false;
+                    break;
+                }
+            }
+            if (canCastle) {
+                validMoves.push_back({sqr + 2 * dirs[7]});
             }
         }
     }

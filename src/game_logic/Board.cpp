@@ -1,39 +1,49 @@
 #include "../../include/game_logic/Board.hpp"
 #include <algorithm>
-
+#include <iostream>
 Board::Board() {
     setupDefaultBoard();
 }
 
-std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
-    _enPassantTarget.reset();
+bool Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
+    std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(src, dest);
+    MoveType type = moveInfo.first;
+    SpecialMove special = moveInfo.second;
 
-    if (!isWithinBoard(src) || !isWithinBoard(dest) || !_grid[src.x][src.y]) {
-        return nullptr;
+    if (type == MoveType::Invalid) {
+        return false;
     }
 
-    bool isCastling = getPieceAt(src)->type() == PieceType::King && std::abs(dest.y - src.y) == 2;
+    if (special != SpecialMove::EnPassant) {
+        _enPassantTarget.reset();
+    }
 
-    auto srcPcs = takePieceAt(src);
+    auto sourcePtr = getPieceAt(src);
+    auto sourcePcs = takePieceAt(src);
     auto destPcs = takePieceAt(dest);
 
-    // Handle en passant and promoting
-    bool isPromoting  = false;
-    if (srcPcs->type() == PieceType::Pawn) {
-        if (std::abs(src.x - dest.x) == 2) {
-            int forward = (srcPcs->color() == PieceColor::Black ? 1 : -1);
+    sourcePcs->setMoved();
+    _grid[dest.x][dest.y] = std::move(sourcePcs);
+    pieceMoved(src, dest);
+    
+    if (special == SpecialMove::EnPassant) {
+        if (type == MoveType::Move) {
+            int forward = (sourcePtr->color() == PieceColor::Black ? 1 : -1);
             _enPassantTarget = src + sf::Vector2i{forward, 0};
         }
-        if (dest.x == 0 || dest.x == SIZE - 1) {
-            isPromoting = true;
+        else {
+            _enPassantTarget.reset();
+            
+            sf::Vector2i victimPos = {src.x, dest.y};
+            auto victimPawn = takePieceAt(victimPos);
+            if (victimPawn) {
+                pieceCaptured(victimPawn.get());
+                _capturedPieces.push_back(std::move(victimPawn));
+            }
         }
     }
 
-    _grid[dest.x][dest.y] = std::move(srcPcs);
-    _grid[dest.x][dest.y]->setMoved();
-
-    // Move the rook if castling
-    if (isCastling) {
+    else if (special == SpecialMove::Castle) {
         sf::Vector2i rookSrc, rookDest;
         if (dest.y > src.y) { // Kingside castling
             rookSrc = {src.x, SIZE - 1};
@@ -46,27 +56,27 @@ std::unique_ptr<Piece> Board::movePiece(const sf::Vector2i& src, const sf::Vecto
         if (rook) {
             rook->setMoved();
             _grid[rookDest.x][rookDest.y] = std::move(rook);
+            pieceMoved(rookSrc, rookDest);
         }
     }
-    else if (isPromoting) {
+
+    else if (special == SpecialMove::Promote) {
         // TODO: input promotion type here
-        promote(dest, PieceType::Queen);
+        auto oldPawn = promote(dest, PieceType::Queen);
+        piecePromoted(dest, PieceType::Queen, oldPawn.get());
     }
 
-    pieceMoved(src, dest);
-    if (destPcs) {
+    if (type == MoveType::Capture && destPcs) {
         pieceCaptured(destPcs.get());
-    }
-    if (isPromoting) {
-        // insert promotion type here
-        piecePromoted(dest, PieceType::Queen);
+        _capturedPieces.push_back(std::move(destPcs));
     }
 
-    return destPcs;
+    return true;
 }
 
-void Board::promote(const sf::Vector2i& sqr, PieceType type) {
+std::unique_ptr<Piece> Board::promote(const sf::Vector2i& sqr, PieceType type) {
     PieceColor color = getPieceAt(sqr)->color();
+    auto oldPawn = takePieceAt(sqr);
     switch(type) {
     case PieceType::Queen:
         _grid[sqr.x][sqr.y] = std::make_unique<Queen>(color);
@@ -84,6 +94,7 @@ void Board::promote(const sf::Vector2i& sqr, PieceType type) {
         break;
     }
     _grid[sqr.x][sqr.y]->setMoved();
+    return oldPawn;
 }
 
 bool Board::isWithinBoard(const sf::Vector2i& sqr) {
@@ -91,11 +102,60 @@ bool Board::isWithinBoard(const sf::Vector2i& sqr) {
 }
 
 bool Board::isValidMove(PieceColor srcColor, const sf::Vector2i& dest) const {
-    if (!isWithinBoard(dest) || srcColor == _grid[dest.x][dest.y]->color()) {
+    if (!isWithinBoard(dest)) {
         return false;
     }
-    return true;
+
+    auto destPtr = getPieceAt(dest);
+    return (!destPtr || srcColor != destPtr->color());
 }
+
+std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, const sf::Vector2i& dest) const {
+    auto type = MoveType::Invalid;
+    auto special = SpecialMove::None;
+
+    if (!isWithinBoard(src) || !isWithinBoard(dest)) {
+        return std::make_pair(type, special);
+    }
+
+    auto sourcePtr = getPieceAt(src);
+    if (!sourcePtr) {
+        return std::make_pair(type, special);
+    }
+
+    std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
+    if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
+        return std::make_pair(type, special);
+    }
+
+    auto destPtr = getPieceAt(dest);
+    type = (destPtr ? MoveType::Capture : MoveType::Move);
+
+    bool isCastling = getPieceAt(src)->type() == PieceType::King && std::abs(dest.y - src.y) == 2;
+    if (isCastling) {
+        special = SpecialMove::Castle;
+        return std::make_pair(type, special);
+    }
+
+    bool isEnPassantTarget = (sourcePtr->type() == PieceType::Pawn && std::abs(src.x - dest.x) == 2)
+                            || (_enPassantTarget && *_enPassantTarget == dest);
+    if (isEnPassantTarget) {
+        type = (src.y == dest.y ? MoveType::Move : MoveType::Capture);
+        special = SpecialMove::EnPassant;
+        return std::make_pair(type, special);
+    }
+
+    bool isPromoting = (sourcePtr->type() == PieceType::Pawn
+                        && (dest.x == 0 || dest.x == SIZE - 1));
+    if (isPromoting) {
+        special = SpecialMove::Promote;
+        return std::make_pair(type, special);
+    }
+
+    special = SpecialMove::None;
+    return std::make_pair(type, special);
+}
+
 
 const Piece* Board::getPieceAt(const sf::Vector2i& sqr) const {
     return _grid[sqr.x][sqr.y].get();
@@ -157,19 +217,20 @@ void Board::pieceCaptured(const Piece* piece) {
     }
 }
 
-void Board::addObserver(std::shared_ptr<BoardObserver> observer) {
-    _observers.push_back(observer);
-}
-
-void Board::piecePromoted(const sf::Vector2i& sqr, PieceType type) {
+void Board::piecePromoted(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
-            observer->onPromotion(sqr, type);
+            observer->onPromotion(sqr, type, oldPiece);
+            it++;
         }
         else {
             it = _observers.erase(it);
         }
     }
+}
+
+void Board::addObserver(std::shared_ptr<BoardObserver> observer) {
+    _observers.push_back(observer);
 }
 
 std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {

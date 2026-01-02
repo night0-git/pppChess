@@ -10,7 +10,7 @@ public:
     virtual void onBoardInit() = 0;
     virtual void onPieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) = 0;
     virtual void onPieceCaptured(const Piece* piece) = 0;
-    virtual void onPromotion(const sf::Vector2i& sqr, PieceType type) = 0;
+    virtual void onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) = 0;
 };
 
 #endif

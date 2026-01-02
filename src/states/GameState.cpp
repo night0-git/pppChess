@@ -20,10 +20,18 @@ void GameState::init() {
     _context.textures->load(ui::TextureId::BQueen, "./assets/custom/pieces/BQueen.png");
     _context.textures->load(ui::TextureId::WKing, "./assets/custom/pieces/WKing.png");
     _context.textures->load(ui::TextureId::BKing, "./assets/custom/pieces/BKing.png");
+    // Connect to _boardView's hook 
+    _boardView->_onMoveRequest = [this](const sf::Vector2i& src, const sf::Vector2i& dest) {
+        return _board.movePiece(src, dest);
+    };
     _board.boardInit();
 }
 
 void GameState::handleEvent(const sf::Event& event) {
+    if (_context.window) {
+        _boardView->handleEvent(event, *(_context.window));
+    }
+
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
             _context.states->pushState(std::make_unique<SettingsState>(_context), false);
