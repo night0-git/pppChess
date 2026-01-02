@@ -14,13 +14,13 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
 
     for (const auto& offset : offsets) {
         sf::Vector2i move = sqr + offset;
-        if (board.isValidMove(_color, move) && !board.isAttackedSqr(_color, move)) {
+        if (board.isValidMove(_color, move) && !board.isCheckedSqr(_color, move)) {
             validMoves.push_back(move);
         }
     }
 
     // Castling moves
-    if (!_hasMoved && !board.isAttackedSqr(_color, sqr)) {
+    if (!_hasMoved && !board.isCheckedSqr(_color, sqr)) {
         // Queen-side castling
         sf::Vector2i queenSideRookPos(sqr.x, 0);
         const Piece* rookPtr = board.getPieceAt(queenSideRookPos);
@@ -28,7 +28,7 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
             bool pathClear = true;
             for (int y = sqr.y - 1; y > 0; y--) {
                 sf::Vector2i currentSqr(sqr.x, y);
-                if (board.getPieceAt(currentSqr) || (y > sqr.y - 3 && board.isAttackedSqr(_color, currentSqr))) {
+                if (board.getPieceAt(currentSqr) || (y > sqr.y - 3 && board.isCheckedSqr(_color, currentSqr))) {
                     pathClear = false;
                     break;
                 }
@@ -45,7 +45,7 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
             bool pathClear = true;
             for (int y = sqr.y + 1; y < Board::SIZE - 1; y++) {
                 sf::Vector2i currentSqr(sqr.x, y);
-                if (board.getPieceAt(currentSqr) || board.isAttackedSqr(_color, currentSqr)) {
+                if (board.getPieceAt(currentSqr) || board.isCheckedSqr(_color, currentSqr)) {
                     pathClear = false;
                     break;
                 }

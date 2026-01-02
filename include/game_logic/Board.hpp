@@ -30,7 +30,7 @@ public:
     // Getters
     const Piece* getPieceAt(const sf::Vector2i& sqr) const;
     std::optional<sf::Vector2i> enPassantTarget() const;
-    bool isAttackedSqr(PieceColor color, const sf::Vector2i& sqr) const;
+    bool isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const;
 
     // Notifiers
     void boardInit();

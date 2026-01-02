@@ -169,7 +169,7 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr) const {
+bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
     // Knight
     static const std::vector<sf::Vector2i> knightOffsets = {
         {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
@@ -201,14 +201,17 @@ bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr) const {
     static const std::vector<sf::Vector2i> orthoDirs = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
     for (const auto& dir : orthoDirs) {
         sf::Vector2i pos = sqr + dir;
-        while (isValidMove(color, pos)) {
+        while (isWithinBoard(pos)) {
             auto piece = getPieceAt(pos);
             if (piece) {
-                // Found an enemy
-                if (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen) {
+                // Found an attacking enemy
+                if (piece->color() != color && (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen)) {
                     return true;
                 }
-                break; // Blocked by non-attacking enemy (e.g., bishop)
+                // Sees own king, ignore
+                if (piece->type() != PieceType::King) {
+                    break;
+                }
             }
             pos += dir;
         }
@@ -218,14 +221,17 @@ bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr) const {
     static const std::vector<sf::Vector2i> diagDirs = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
     for (const auto& dir : diagDirs) {
         sf::Vector2i pos = sqr + dir;
-        while (isValidMove(color, pos)) {
-            pos += dir;
+        while (isWithinBoard(pos)) {
             auto piece = getPieceAt(pos);
             if (piece) {
-                if (piece->type() == PieceType::Bishop || piece->type() == PieceType::Queen) {
+                // Found an attacking enemy
+                if (piece->color() != color && (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen)) {
                     return true;
                 }
-                break;
+                // Sees own king, ignore
+                if (piece->type() != PieceType::King) {
+                    break;
+                }
             }
             pos += dir;
         }
