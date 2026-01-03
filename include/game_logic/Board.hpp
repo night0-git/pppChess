@@ -34,10 +34,15 @@ public:
 
     // Notifiers
     void boardInit();
+    void addObserver(std::shared_ptr<BoardObserver> observer);
+    
+private:
+    // Notifiers
     void pieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest);
     void pieceCaptured(const Piece* piece);
+    void selectPromoteType(const sf::Vector2i& sqr, PieceType& type);
     void piecePromoted(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece);
-    void addObserver(std::shared_ptr<BoardObserver> observer);
+    
 
 private:
     array<array<unique_ptr<Piece>, SIZE>, SIZE> _grid;

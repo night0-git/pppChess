@@ -73,10 +73,17 @@ void ui::BoardView::onPieceCaptured(const Piece* piece) {
     _pieceViews.erase(piece);
 }
 
-void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) {
-    // Delete the old piece texture
-    _pieceViews.erase(oldPiece);
+void ui::BoardView::onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) {
+    // Display and choose promotion type here
+    type = PieceType::Queen;
+}
 
+
+void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) {
+    // Delete the old piece texture
+    _pieceViews.erase(oldPcs);
+
+    // Add new PieceView
     auto pcs = _board.getPieceAt(sqr);
     if (pcs) {
         const sf::Texture& texture = _textures.get(ui::getTextureId(*pcs));

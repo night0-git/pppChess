@@ -61,9 +61,10 @@ bool Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
     }
 
     else if (special == SpecialMove::Promote) {
-        // TODO: input promotion type here
-        auto oldPawn = promote(dest, PieceType::Queen);
-        piecePromoted(dest, PieceType::Queen, oldPawn.get());
+        PieceType promoteType;
+        selectPromoteType(dest, promoteType);
+        auto oldPawn = promote(dest, promoteType);
+        piecePromoted(dest, promoteType, oldPawn.get());
     }
 
     if (type == MoveType::Capture && destPcs) {
@@ -281,6 +282,18 @@ void Board::pieceCaptured(const Piece* piece) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
             observer->onPieceCaptured(piece);
+            it++;
+        }
+        else {
+            it = _observers.erase(it);
+        }
+    }
+}
+
+void Board::selectPromoteType(const sf::Vector2i& sqr, PieceType& type) {
+    for (auto it = _observers.begin(); it != _observers.end(); ) {
+        if (auto observer = it->lock()) {
+            observer->onPromoteSelection(sqr, type);
             it++;
         }
         else {

@@ -23,7 +23,8 @@ public:
     void onBoardInit() override;
     void onPieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) override;
     void onPieceCaptured(const Piece* piece) override;
-    void onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) override;
+    void onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) override;
+    void onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) override;
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
