@@ -24,8 +24,8 @@ void MenuState::update(sf::Time dt) {
     
 }
 
-void MenuState::render(sf::RenderWindow& window) {
-    window.draw(_text);
+void MenuState::render() {
+    _context.window->draw(_text);
 }
 
 void MenuState::pause() {

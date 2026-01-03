@@ -14,7 +14,7 @@ public:
     virtual void init() = 0;
     virtual void handleEvent(const sf::Event& event) = 0;
     virtual void update(sf::Time dt) = 0;
-    virtual void render(sf::RenderWindow& window) = 0;
+    virtual void render() = 0;
 
     virtual void pause() = 0;
     virtual void resume() = 0;

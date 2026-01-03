@@ -22,9 +22,9 @@ private:
     sf::RenderWindow _window;
     StateManager _states;
     ui::ResourceManager<ui::TextureId, sf::Texture> _textures;
-    Context _context;
-
     sf::Clock _clock;
+
+    Context _context;
 };
 
 #endif

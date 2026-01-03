@@ -6,6 +6,7 @@ App::App() : _window(sf::VideoMode({1080, 720}), "pppChess") {
     _context.window = &_window;
     _context.states = &_states;
     _context.textures = &_textures;
+    _context.clock = &_clock;
     _states.pushState(std::make_unique<MenuState>(_context));
 }
 
@@ -41,7 +42,7 @@ void App::render() {
     _window.clear();
 
     if (_states.currentState()) {
-        _states.currentState()->render(_window);
+        _states.currentState()->render();
     }
 
     _window.display();

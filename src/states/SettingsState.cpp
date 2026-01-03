@@ -19,8 +19,8 @@ void SettingsState::update(sf::Time dt) {
 
 }
 
-void SettingsState::render(sf::RenderWindow& window) {
-    window.draw(_text);
+void SettingsState::render() {
+    _context.window->draw(_text);
 }
 
 void SettingsState::pause() {

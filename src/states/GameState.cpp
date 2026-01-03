@@ -46,8 +46,8 @@ void GameState::update(sf::Time dt) {
 
 }
 
-void GameState::render(sf::RenderWindow& window) {
-    window.draw(*_boardView);
+void GameState::render() {
+    _context.window->draw(*_boardView);
 }
 
 void GameState::pause() {

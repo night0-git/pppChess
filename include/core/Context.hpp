@@ -13,6 +13,7 @@ struct Context {
     sf::RenderWindow* window;
     StateManager* states;
     ui::ResourceManager<ui::TextureId, sf::Texture>* textures;
+    sf::Clock* clock;
 };
 
 #endif
