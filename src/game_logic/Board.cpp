@@ -5,8 +5,8 @@ Board::Board() {
     setupDefaultBoard();
 }
 
-bool Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
-    std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(src, dest);
+bool Board::movePiece(const Move& move) {
+    std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(move);
     MoveType type = moveInfo.first;
     SpecialMove special = moveInfo.second;
 
@@ -18,13 +18,16 @@ bool Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
         _enPassantTarget.reset();
     }
 
+    auto src = move.src;
+    auto dest = move.dest;
+
     auto sourcePtr = getPieceAt(src);
     auto sourcePcs = takePieceAt(src);
     auto destPcs = takePieceAt(dest);
 
     sourcePcs->setMoved();
     _grid[dest.x][dest.y] = std::move(sourcePcs);
-    pieceMoved(src, dest);
+    pieceMoved(move);
     
     if (special == SpecialMove::EnPassant) {
         if (type == MoveType::Move) {
@@ -56,7 +59,7 @@ bool Board::movePiece(const sf::Vector2i& src, const sf::Vector2i& dest) {
         if (rook) {
             rook->setMoved();
             _grid[rookDest.x][rookDest.y] = std::move(rook);
-            pieceMoved(rookSrc, rookDest);
+            pieceMoved({rookSrc, rookDest});
         }
     }
 
@@ -111,9 +114,11 @@ bool Board::isValidMove(PieceColor srcColor, const sf::Vector2i& dest) const {
     return (!destPtr || srcColor != destPtr->color());
 }
 
-std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, const sf::Vector2i& dest) const {
+std::pair<MoveType, SpecialMove> Board::getMoveInfo(const Move& move) const {
     auto type = MoveType::Invalid;
     auto special = SpecialMove::None;
+    auto src = move.src;
+    auto dest = move.dest;
 
     auto sourcePtr = getPieceAt(src);
     auto destPtr = getPieceAt(dest);
@@ -129,6 +134,21 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const sf::Vector2i& src, con
     std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
     if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
         return std::make_pair(type, special);
+    }
+
+    // Check if the move leaves the king open
+    if (sourcePtr->type() != PieceType::King) {
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < SIZE; y++) {
+                auto pcsPtr = getPieceAt({x, y});
+                if (pcsPtr && pcsPtr->type() == PieceType::King && pcsPtr->color() == sourcePtr->color()) {
+                    if (isCheckedSqr(sourcePtr->color(), {x, y}, move)) {
+                        type = MoveType::Invalid;
+                        return std::make_pair(type, special);
+                    }
+                }
+            }
+        }
     }
 
     type = (destPtr ? MoveType::Capture : MoveType::Move);
@@ -170,7 +190,7 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
+bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr, const Move& incMove) const {
     // Knight
     static const std::vector<sf::Vector2i> knightOffsets = {
         {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
@@ -203,16 +223,20 @@ bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
     for (const auto& dir : orthoDirs) {
         sf::Vector2i pos = sqr + dir;
         while (isWithinBoard(pos)) {
+            if (pos == incMove.src) {
+                pos += dir;
+                continue;
+            }
+            else if (pos == incMove.dest) {
+                break;
+            }
             auto piece = getPieceAt(pos);
             if (piece) {
                 // Found an attacking enemy
                 if (piece->color() != color && (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen)) {
                     return true;
                 }
-                // Sees own king, ignore
-                if (piece->type() != PieceType::King) {
-                    break;
-                }
+                break;
             }
             pos += dir;
         }
@@ -223,16 +247,20 @@ bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr) const {
     for (const auto& dir : diagDirs) {
         sf::Vector2i pos = sqr + dir;
         while (isWithinBoard(pos)) {
+            if (pos == incMove.src) {
+                pos += dir;
+                continue;
+            }
+            else if (pos == incMove.dest) {
+                break;
+            }
             auto piece = getPieceAt(pos);
             if (piece) {
                 // Found an attacking enemy
-                if (piece->color() != color && (piece->type() == PieceType::Rook || piece->type() == PieceType::Queen)) {
+                if (piece->color() != color && (piece->type() == PieceType::Bishop || piece->type() == PieceType::Queen)) {
                     return true;
                 }
-                // Sees own king, ignore
-                if (piece->type() != PieceType::King) {
-                    break;
-                }
+                break;
             }
             pos += dir;
         }
@@ -266,10 +294,10 @@ void Board::boardInit() {
     }
 }
 
-void Board::pieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) {
+void Board::pieceMoved(const Move& move) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
-            observer->onPieceMoved(src, dest);
+            observer->onPieceMoved(move);
             it++;
         }
         else {

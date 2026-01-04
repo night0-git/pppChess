@@ -14,7 +14,7 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
 
     for (const auto& offset : offsets) {
         sf::Vector2i move = sqr + offset;
-        if (board.isValidMove(_color, move) && !board.isCheckedSqr(_color, move)) {
+        if (board.isValidMove(_color, move) && !board.isCheckedSqr(_color, move, {sqr, move})) {
             validMoves.push_back(move);
         }
     }
@@ -28,7 +28,7 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
             bool pathClear = true;
             for (int y = sqr.y - 1; y > 0; y--) {
                 sf::Vector2i currentSqr(sqr.x, y);
-                if (board.getPieceAt(currentSqr) || (y > sqr.y - 3 && board.isCheckedSqr(_color, currentSqr))) {
+                if (board.getPieceAt(currentSqr) || (y > sqr.y - 3 && board.isCheckedSqr(_color, currentSqr, {sqr, currentSqr}))) {
                     pathClear = false;
                     break;
                 }
@@ -45,7 +45,7 @@ vector<sf::Vector2i> King::validMoves(const Board& board, const sf::Vector2i& sq
             bool pathClear = true;
             for (int y = sqr.y + 1; y < Board::SIZE - 1; y++) {
                 sf::Vector2i currentSqr(sqr.x, y);
-                if (board.getPieceAt(currentSqr) || board.isCheckedSqr(_color, currentSqr)) {
+                if (board.getPieceAt(currentSqr) || board.isCheckedSqr(_color, currentSqr, {sqr, currentSqr})) {
                     pathClear = false;
                     break;
                 }

@@ -21,8 +21,8 @@ void GameState::init() {
     _context.textures->load(ui::TextureId::WKing, "./assets/custom/pieces/WKing.png");
     _context.textures->load(ui::TextureId::BKing, "./assets/custom/pieces/BKing.png");
     // Connect to _boardView's hook 
-    _boardView->_onMoveRequest = [this](const sf::Vector2i& src, const sf::Vector2i& dest) {
-        return _board.movePiece(src, dest);
+    _boardView->_onMoveRequest = [this](const Move& move) {
+        return _board.movePiece({move});
     };
     _board.boardInit();
 }

@@ -34,7 +34,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
             sf::Vector2i dest = localPosToSqr(localPos);
             bool isValidMove = false;
             if (_onMoveRequest) {
-                if (_onMoveRequest(_sourceSquare, dest)) {
+                if (_onMoveRequest({_sourceSquare, dest})) {
                     isValidMove = true;
                 }
             }
@@ -63,9 +63,9 @@ void ui::BoardView::onBoardInit() {
     }
 }
 
-void ui::BoardView::onPieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) {
-    auto pcs = _board.getPieceAt(dest);
-    _pieceViews.at(pcs).updatePosition(dest);
+void ui::BoardView::onPieceMoved(const Move& move) {
+    auto pcs = _board.getPieceAt(move.dest);
+    _pieceViews.at(pcs).updatePosition(move.dest);
     // insert sliding animation
 }
 

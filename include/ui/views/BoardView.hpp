@@ -17,11 +17,11 @@ public:
     BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board);
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    std::function<bool(const sf::Vector2i& src, const sf::Vector2i& dest)> _onMoveRequest;
+    std::function<bool(const Move& move)> _onMoveRequest;
 
 public:
     void onBoardInit() override;
-    void onPieceMoved(const sf::Vector2i& src, const sf::Vector2i& dest) override;
+    void onPieceMoved(const Move& move) override;
     void onPieceCaptured(const Piece* piece) override;
     void onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) override;
     void onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) override;
