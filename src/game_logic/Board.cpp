@@ -142,7 +142,7 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const Move& move) const {
             for (int y = 0; y < SIZE; y++) {
                 auto pcsPtr = getPieceAt({x, y});
                 if (pcsPtr && pcsPtr->type() == PieceType::King && pcsPtr->color() == sourcePtr->color()) {
-                    if (isCheckedSqr(sourcePtr->color(), {x, y}, move)) {
+                    if (isAttackedSqr(sourcePtr->color(), {x, y}, move)) {
                         type = MoveType::Invalid;
                         return std::make_pair(type, special);
                     }
@@ -190,7 +190,7 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isCheckedSqr(PieceColor color, const sf::Vector2i& sqr, const Move& incMove) const {
+bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr, const Move& incMove) const {
     // Knight
     static const std::vector<sf::Vector2i> knightOffsets = {
         {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
