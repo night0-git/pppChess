@@ -39,6 +39,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
                 }
             }
             if (!isValidMove) {
+                // Snap back
                _pieceViews.at(_draggedPiece).updatePosition(_sourceSquare);
             }
             _draggedPiece = nullptr;

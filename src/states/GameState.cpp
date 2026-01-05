@@ -4,10 +4,10 @@
 #include "../../include/core/StateManager.hpp"
 
 GameState::GameState(Context& context) : State(context),
-_boardView(std::make_shared<ui::BoardView>(*(context.textures), _board)) {}
+_boardView(std::make_shared<ui::BoardView>(*(context.textures), _game.board())) {}
 
 void GameState::init() {
-    _board.addObserver(_boardView);
+    _game.addBoardObserver(_boardView);
     _context.textures->load(ui::TextureId::WPawn, "./assets/custom/pieces/WPawn.png");
     _context.textures->load(ui::TextureId::BPawn, "./assets/custom/pieces/BPawn.png");
     _context.textures->load(ui::TextureId::WRook, "./assets/custom/pieces/WRook.png");
@@ -22,9 +22,9 @@ void GameState::init() {
     _context.textures->load(ui::TextureId::BKing, "./assets/custom/pieces/BKing.png");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
-        return _board.movePiece({move});
+        return _game.attemptMove(move);
     };
-    _board.boardInit();
+    _game.reset();
 }
 
 void GameState::handleEvent(const sf::Event& event) {

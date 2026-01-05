@@ -2,7 +2,7 @@
 #define _GAME_STATE_H_
 
 #include "State.hpp"
-#include "../game_logic/Board.hpp"
+#include "../game_logic/ChessGame.hpp"
 #include "../ui/views/BoardView.hpp"
 #include <memory>
 
@@ -20,7 +20,7 @@ public:
     void resume() override;
 
 private:
-    Board _board;
+    ChessGame _game;
     std::shared_ptr<ui::BoardView> _boardView;
 };
 

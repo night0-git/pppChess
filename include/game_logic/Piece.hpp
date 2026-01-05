@@ -9,6 +9,9 @@ class Board;
 
 enum class PieceType { Rook, Knight, Bishop, King, Queen, Pawn };
 enum class PieceColor { White, Black };
+inline PieceColor operator!(PieceColor color) {
+    return (color == PieceColor::White ? PieceColor::Black : PieceColor::White);
+}
 
 class Piece {
 public:
