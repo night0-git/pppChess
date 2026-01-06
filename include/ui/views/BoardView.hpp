@@ -40,7 +40,7 @@ private:
 
     // For event handling
     const Piece* _draggedPiece;
-    sf::Vector2i _sourceSquare;
+    std::optional<sf::Vector2i> _selectedSqr;
     sf::Vector2i localPosToSqr(const sf::Vector2f& localPos) const;
 };
 

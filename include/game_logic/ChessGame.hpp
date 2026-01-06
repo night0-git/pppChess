@@ -12,6 +12,7 @@ public:
     ChessGame();
 
     void reset();
+    const Piece* getLastCaptured() const;
 
     // Wrappers
     const Board& board() const;

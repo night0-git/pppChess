@@ -1,8 +1,9 @@
 #include "../../../include/ui/views/BoardView.hpp"
 #include <iostream>
-#include <stdexcept>
+#include <cmath>
+
 ui::BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
-: _textures(textures), _board(board), _draggedPiece(nullptr) {}
+: _textures(textures), _board(board), _draggedPiece(nullptr), _selectedSqr(std::nullopt) {}
 
 void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
@@ -14,11 +15,23 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
         sf::Vector2i sqr = localPosToSqr(localPos);
         
         if (_board.isWithinBoard(sqr)) {
+            // Handle click move first
+            if (_selectedSqr) {
+                if (_onMoveRequest) {
+                    if (_onMoveRequest({*_selectedSqr, sqr})) {
+                        _selectedSqr = std::nullopt;
+                        return;
+                    }
+                }
+            }
             auto pcs = _board.getPieceAt(sqr);
             if (pcs) {
+                _selectedSqr = sqr;
                 _draggedPiece = pcs;
-                _sourceSquare = sqr;
                 _pieceViews.at(pcs).setPosition(localPos + dragOffset);
+            }
+            else if (_selectedSqr) {
+                _selectedSqr = std::nullopt;
             }
         }
     }
@@ -30,17 +43,20 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
     }
 
     else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
-        if (_draggedPiece) {
+        if (_draggedPiece && _selectedSqr) {
             sf::Vector2i dest = localPosToSqr(localPos);
-            bool isValidMove = false;
+            bool moved = false;
             if (_onMoveRequest) {
-                if (_onMoveRequest({_sourceSquare, dest})) {
-                    isValidMove = true;
+                if (_onMoveRequest({*_selectedSqr, dest})) {
+                    moved = true;
                 }
             }
-            if (!isValidMove) {
+            if (!moved) {
                 // Snap back
-               _pieceViews.at(_draggedPiece).updatePosition(_sourceSquare);
+               _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+            }
+            else {
+                _selectedSqr = std::nullopt;
             }
             _draggedPiece = nullptr;
         }
@@ -99,13 +115,19 @@ void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const P
 void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
-    // Drawgrid;
+    // Draw grid;
     sf::RectangleShape square({_tileSize, _tileSize});
-    for (int x = 0; x < Board::SIZE; x++) {
-        for (int y = 0; y < Board::SIZE; y++) {
-            square.setPosition({x * _tileSize, y * _tileSize});
-            square.setFillColor((x + y) % 2 == 0 ? _lightColor : _darkColor);
+    for (int col = 0; col < Board::SIZE; col++) {
+        for (int row = 0; row < Board::SIZE; row++) {
+            square.setPosition({col * _tileSize, row * _tileSize});
+            square.setFillColor((col + row) % 2 == 0 ? _lightColor : _darkColor);
             target.draw(square, states);
+            if (_selectedSqr == sf::Vector2i(row, col)) {
+                // Draw an overlay for selected square
+                sf::Color yellow = {255, 235, 59, 100};
+                square.setFillColor(yellow);
+                target.draw(square, states);
+            }
         }
     }
     // Draw piece
@@ -123,7 +145,7 @@ void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 }
 
 sf::Vector2i ui::BoardView::localPosToSqr(const sf::Vector2f& localPos) const {
-    int col = static_cast<int>(localPos.x / _tileSize);
-    int row = static_cast<int>(localPos.y / _tileSize);
+    int col = static_cast<int>(std::floor(localPos.x / _tileSize));
+    int row = static_cast<int>(std::floor(localPos.y / _tileSize));
     return sf::Vector2i(row, col);
 }

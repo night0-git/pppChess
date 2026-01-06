@@ -4,7 +4,8 @@
 using std::map, std::pair;
 
 ui::PieceView::PieceView(const sf::Texture& texture, float tileSize,
-const Piece& piece) : _sprite(texture), _tileSize(tileSize), _piece(&piece) {
+const Piece& piece) : _sprite(texture), _tileSize(tileSize),
+_piece(&piece) {
     normalizeSprite();
 }
 

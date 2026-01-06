@@ -16,6 +16,12 @@ struct Move {
     Move(const sf::Vector2i& s, const sf::Vector2i& d) : src(s), dest(d) {};
 };
 
+struct MoveResult {
+    bool success;
+    std::unique_ptr<Piece> captured;
+    MoveResult(bool s, std::unique_ptr<Piece> c = nullptr) : success(s), captured(std::move(c)) {};
+};
+
 enum class MoveType { Move, Capture, Invalid };
 enum class SpecialMove { Castle, Promote, EnPassant, None };
 
@@ -23,7 +29,7 @@ class Board {
 public:
     Board();
 
-    bool movePiece(const Move& move);
+    MoveResult movePiece(const Move& move);
     std::unique_ptr<Piece> promote(const sf::Vector2i& sqr, PieceType type);
 
 public:
@@ -52,7 +58,6 @@ private:
 
 private:
     array<array<unique_ptr<Piece>, SIZE>, SIZE> _grid;
-    std::vector<unique_ptr<Piece>> _capturedPieces;
     std::optional<sf::Vector2i> _enPassantTarget;
     std::unique_ptr<Piece> takePieceAt(const sf::Vector2i& sqr);
     void setupDefaultBoard();

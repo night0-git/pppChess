@@ -11,6 +11,13 @@ void ChessGame::reset() {
     _capturedPiece.clear();
 }
 
+const Piece* ChessGame::getLastCaptured() const {
+    if (_capturedPiece.empty()) {
+        return nullptr;
+    }
+    return _capturedPiece.back().get();
+}
+
 const Board& ChessGame::board() const {
     return _board;
 }
@@ -22,11 +29,14 @@ void ChessGame::addBoardObserver(std::shared_ptr<BoardObserver> observer) {
 bool ChessGame::attemptMove(const Move& move) {
     auto srcPtr = _board.getPieceAt(move.src);
     if (srcPtr && srcPtr->color() == _currentTurn) {
-        bool moved = _board.movePiece(move);
-        if (moved) {
+        MoveResult res = _board.movePiece(move);
+        if (res.success) {
+            if (res.captured) {
+                _capturedPiece.push_back(std::move(res.captured));
+            }
             _currentTurn = !_currentTurn;
+            return true;
         }
-        return moved;
     }
     return false;
 }

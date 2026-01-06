@@ -5,13 +5,13 @@ Board::Board() {
     setupDefaultBoard();
 }
 
-bool Board::movePiece(const Move& move) {
+MoveResult Board::movePiece(const Move& move) {
     std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(move);
     MoveType type = moveInfo.first;
     SpecialMove special = moveInfo.second;
 
     if (type == MoveType::Invalid) {
-        return false;
+        return MoveResult(false);
     }
 
     if (special != SpecialMove::EnPassant) {
@@ -41,7 +41,7 @@ bool Board::movePiece(const Move& move) {
             auto victimPawn = takePieceAt(victimPos);
             if (victimPawn) {
                 pieceCaptured(victimPawn.get());
-                _capturedPieces.push_back(std::move(victimPawn));
+                return MoveResult(true, std::move(victimPawn));
             }
         }
     }
@@ -72,10 +72,10 @@ bool Board::movePiece(const Move& move) {
 
     if (type == MoveType::Capture && destPcs) {
         pieceCaptured(destPcs.get());
-        _capturedPieces.push_back(std::move(destPcs));
+        return MoveResult(true, std::move(destPcs));
     }
 
-    return true;
+    return MoveResult(true);
 }
 
 std::unique_ptr<Piece> Board::promote(const sf::Vector2i& sqr, PieceType type) {
