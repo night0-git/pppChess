@@ -17,11 +17,9 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
         if (_board.isWithinBoard(sqr)) {
             // Handle click move first
             if (_selectedSqr) {
-                if (_onMoveRequest) {
-                    if (_onMoveRequest({*_selectedSqr, sqr})) {
-                        _selectedSqr = std::nullopt;
-                        return;
-                    }
+                if (_onMoveRequest && _onMoveRequest({*_selectedSqr, sqr})) {
+                    _selectedSqr = std::nullopt;
+                    return;
                 }
             }
             auto pcs = _board.getPieceAt(sqr);
@@ -44,12 +42,10 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
 
     else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
         if (_draggedPiece && _selectedSqr) {
-            sf::Vector2i dest = localPosToSqr(localPos);
+            sf::Vector2i releasedSqr = localPosToSqr(localPos);
             bool moved = false;
-            if (_onMoveRequest) {
-                if (_onMoveRequest({*_selectedSqr, dest})) {
-                    moved = true;
-                }
+            if (_onMoveRequest && _onMoveRequest({*_selectedSqr, releasedSqr})) {
+                moved = true;
             }
             if (!moved) {
                 // Snap back
