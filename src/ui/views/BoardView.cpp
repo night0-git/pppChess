@@ -18,6 +18,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
         if (_board.isWithinBoard(sqr)) {
             // Handle click move first
             if (_selectedSqr) {
+                // Check piece selection
                 if (*_selectedSqr == sqr && !_isDeselecting) {
                     _isDeselecting = true;
                 }
@@ -47,6 +48,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
     else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
         if (_draggedPiece && _selectedSqr) {
             sf::Vector2i dest = localPosToSqr(localPos);
+            // Check piece deselection
             if (*_selectedSqr == dest && _isDeselecting) {
                 _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
                 _selectedSqr = std::nullopt;
