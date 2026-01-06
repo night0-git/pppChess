@@ -41,6 +41,7 @@ private:
     // For event handling
     const Piece* _draggedPiece;
     std::optional<sf::Vector2i> _selectedSqr;
+    bool _isDeselecting;
     sf::Vector2i localPosToSqr(const sf::Vector2f& localPos) const;
 };
 

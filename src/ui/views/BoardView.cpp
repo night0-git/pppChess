@@ -3,7 +3,8 @@
 #include <cmath>
 
 ui::BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
-: _textures(textures), _board(board), _draggedPiece(nullptr), _selectedSqr(std::nullopt) {}
+: _textures(textures), _board(board), _draggedPiece(nullptr), _selectedSqr(std::nullopt),
+_isDeselecting(false) {}
 
 void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
@@ -17,6 +18,9 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
         if (_board.isWithinBoard(sqr)) {
             // Handle click move first
             if (_selectedSqr) {
+                if (*_selectedSqr == sqr && !_isDeselecting) {
+                    _isDeselecting = true;
+                }
                 if (_onMoveRequest && _onMoveRequest({*_selectedSqr, sqr})) {
                     _selectedSqr = std::nullopt;
                     return;
@@ -42,17 +46,21 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
 
     else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
         if (_draggedPiece && _selectedSqr) {
-            sf::Vector2i releasedSqr = localPosToSqr(localPos);
-            bool moved = false;
-            if (_onMoveRequest && _onMoveRequest({*_selectedSqr, releasedSqr})) {
-                moved = true;
-            }
-            if (!moved) {
-                // Snap back
-               _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+            sf::Vector2i dest = localPosToSqr(localPos);
+            if (*_selectedSqr == dest && _isDeselecting) {
+                _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+                _selectedSqr = std::nullopt;
+                _isDeselecting = false;
             }
             else {
-                _selectedSqr = std::nullopt;
+                bool moved = _onMoveRequest && _onMoveRequest({*_selectedSqr, dest});
+                if (!moved) {
+                    // Snap back
+                    _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+                }
+                else {
+                    _selectedSqr = std::nullopt;
+                }
             }
             _draggedPiece = nullptr;
         }
