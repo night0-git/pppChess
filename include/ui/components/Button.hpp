@@ -1,24 +1,53 @@
 #ifndef _BUTTON_H_
 #define _BUTTON_H_
 
-#include <SFML/Graphics.hpp>
+#include "Component.hpp"
+#include "RoundedRect.hpp"
 #include <functional>
 #include <string>
 
 namespace ui {
 
-class Button : public sf::Drawable, public sf::Transformable {
-public:
-    Button(const sf::Vector2f& size, const sf::Font& font, const std::string& text);
+// enum class ButtonState { Idle, Hovered, Pressed };
 
-    void setCallBack(std::function<void()> callback);
+class Button : public Component {
+public:
+    Button(const sf::Vector2f& pos, const sf::Vector2f& size,
+        const std::string& text, const sf::Font& font);
+
+    Button& setCallback(std::function<void()> callback);
+
+    Button& setSize(const sf::Vector2f& size);
+    Button& setTextSize(unsigned int size);
+    Button& setTextScale(float scale);
+
+    Button& setBoxColor(const sf::Color& color);
+    Button& setTextColor(const sf::Color& color);
+
+    Button& setCornerRadius(float radius);
+    Button& setDepthOffset(float offset);
+
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void setPosition(const sf::Vector2f& pos) override;
    
-protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
-    sf::RectangleShape _shape;
+    sf::Color _topColor = sf::Color(38, 37, 34);    // Dark gray
+    sf::Color _bottomColor = sf::Color(29, 28, 26);
+    sf::Color _textColor = sf::Color::White;
+    float _depthOffset = 16.f;
+
+    RoundedRect _body;
+    RoundedRect _shadow;
     sf::Text _text;
+
+    // ButtonState _state = ButtonState::Idle;
+    bool _isPressed = false;
+
+    void centerText();
+    void scaleAndCenterText(float scale = 0.5f);
+
     std::function<void()> _callback;
 };
 

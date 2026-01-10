@@ -1,21 +1,22 @@
 #include "../../../include/ui/components/Label.hpp"
+using ui::Label;
 
-ui::Label::Label(const sf::Font& font, const std::string& text,
+Label::Label(const sf::Font& font, const std::string& text,
 unsigned int charSize) : _text(font, text, charSize) {}
 
-void ui::Label::setText(const std::string& text) {
+void Label::setText(const std::string& text) {
     _text.setString(text);
 }
 
-void ui::Label::setFillColor(const sf::Color& color) {
+void Label::setFillColor(const sf::Color& color) {
     _text.setFillColor(color);
 }
 
-void ui::Label::setCharSize(unsigned int size) {
+void Label::setCharSize(unsigned int size) {
     _text.setCharacterSize(size);
 }
 
-void ui::Label::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void Label::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     target.draw(_text, states);

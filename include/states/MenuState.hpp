@@ -2,6 +2,7 @@
 #define _MENU_STATE_H_
 
 #include "State.hpp"
+#include "../ui/components/Button.hpp"
 
 class MenuState : public State {
 public:
@@ -17,8 +18,8 @@ public:
     void resume() override;
 
 private:
-    sf::Text _text;
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
+    ui::Button _button;
 };
 
 #endif

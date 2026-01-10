@@ -3,7 +3,12 @@
 #include "../../include/states/SettingsState.hpp"
 #include "../../include/core/StateManager.hpp"
 
-MenuState::MenuState(Context& context) : State(context), _text(_font, "Menu") {}
+MenuState::MenuState(Context& context) : State(context),
+_button({500, 500}, {500, 150}, "Start game", _font) {
+    _button.setCallback([this]() {
+        _context.states->pushState(std::make_unique<GameState>(_context), false);
+    });
+}
 
 void MenuState::init() {
 
@@ -18,6 +23,8 @@ void MenuState::handleEvent(const sf::Event& event) {
             _context.states->pushState(std::make_unique<SettingsState>(_context));
         }
     }
+
+    _button.handleEvent(event, *_context.window);
 }
 
 void MenuState::update(sf::Time dt) {
@@ -25,7 +32,7 @@ void MenuState::update(sf::Time dt) {
 }
 
 void MenuState::render() {
-    _context.window->draw(_text);
+    _context.window->draw(_button);
 }
 
 void MenuState::pause() {

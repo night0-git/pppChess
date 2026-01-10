@@ -1,19 +1,20 @@
 #include "../../../include/ui/components/Panel.hpp"
+using ui::Panel;
 
-ui::Panel::Panel(const sf::Vector2f& size, const sf::Color& color)
+Panel::Panel(const sf::Vector2f& size, const sf::Color& color)
 : _background(size) {
     _background.setFillColor(color);
 }
 
-void ui::Panel::addComponent(std::shared_ptr<sf::Drawable> component) {
+void Panel::addComponent(std::shared_ptr<Component> component) {
     _components.push_back(std::move(component));
 }
 
-void ui::Panel::setSize(const sf::Vector2f& size) {
+void Panel::setSize(const sf::Vector2f& size) {
     _background.setSize(size);
 }
 
-void ui::Panel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void Panel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     target.draw(_background, states);

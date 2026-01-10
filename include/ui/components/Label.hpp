@@ -14,7 +14,6 @@ public:
     void setFillColor(const sf::Color& color);
     void setCharSize(unsigned int size);
 
-protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
