@@ -3,7 +3,7 @@
 #include <algorithm>
 using ui::Component;
 
-sf::Color Component::lightened(const sf::Color& color, float amount) {
+sf::Color Component::lightened(sf::Color color, float amount) {
     float factor = 1.f + amount;
     return sf::Color(
         static_cast<std::uint8_t>(std::min(255.0f, color.r * factor)),
@@ -13,7 +13,7 @@ sf::Color Component::lightened(const sf::Color& color, float amount) {
     );
 }
 
-sf::Color Component::darkened(const sf::Color& color, float amount) {
+sf::Color Component::darkened(sf::Color color, float amount) {
     float factor = 1.f - amount;
     return sf::Color(
         static_cast<std::uint8_t>(color.r * factor),

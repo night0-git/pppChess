@@ -17,7 +17,7 @@ public:
     // Wrappers
     const Board& board() const;
     void addBoardObserver(std::shared_ptr<BoardObserver> observer);
-    bool attemptMove(const Move& move);
+    bool attemptMove(Move move);
 
     
 

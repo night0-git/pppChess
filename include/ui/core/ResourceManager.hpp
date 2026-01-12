@@ -12,7 +12,7 @@ class ResourceManager {
 public:
     ResourceManager() = default;
 
-    void load(const Identifier& id, const std::string& file) {
+    void load(Identifier id, const std::string& file) {
         auto resource = std::make_unique<Resource>();
         if (!resource->loadFromFile(file)) {
             throw std::runtime_error("ResourceManager::load - Failed to load " + file);
@@ -20,7 +20,7 @@ public:
         _resources.insert({id, std::move(resource)});
     }
 
-    const Resource& get(const Identifier& id) const {
+    const Resource& get(Identifier id) const {
         auto pair = _resources.find(id);
         if (pair == _resources.end()) {
             throw std::runtime_error("Resource not found");

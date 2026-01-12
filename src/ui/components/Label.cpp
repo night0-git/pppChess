@@ -8,7 +8,7 @@ void Label::setText(const std::string& text) {
     _text.setString(text);
 }
 
-void Label::setFillColor(const sf::Color& color) {
+void Label::setFillColor(sf::Color color) {
     _text.setFillColor(color);
 }
 

@@ -5,7 +5,7 @@ Board::Board() {
     setupDefaultBoard();
 }
 
-MoveResult Board::movePiece(const Move& move) {
+MoveResult Board::movePiece(Move move) {
     std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(move);
     MoveType type = moveInfo.first;
     SpecialMove special = moveInfo.second;
@@ -78,7 +78,7 @@ MoveResult Board::movePiece(const Move& move) {
     return MoveResult(true);
 }
 
-std::unique_ptr<Piece> Board::promote(const sf::Vector2i& sqr, PieceType type) {
+std::unique_ptr<Piece> Board::promote(sf::Vector2i sqr, PieceType type) {
     PieceColor color = getPieceAt(sqr)->color();
     auto oldPawn = takePieceAt(sqr);
     switch(type) {
@@ -101,11 +101,11 @@ std::unique_ptr<Piece> Board::promote(const sf::Vector2i& sqr, PieceType type) {
     return oldPawn;
 }
 
-bool Board::isWithinBoard(const sf::Vector2i& sqr) {
+bool Board::isWithinBoard(sf::Vector2i sqr) {
     return (sqr.x >= 0 && sqr.x < SIZE && sqr.y >= 0 && sqr.y < SIZE);
 }
 
-bool Board::isValidMove(PieceColor srcColor, const sf::Vector2i& dest) const {
+bool Board::isValidMove(PieceColor srcColor, sf::Vector2i dest) const {
     if (!isWithinBoard(dest)) {
         return false;
     }
@@ -114,7 +114,7 @@ bool Board::isValidMove(PieceColor srcColor, const sf::Vector2i& dest) const {
     return (!destPtr || srcColor != destPtr->color());
 }
 
-std::pair<MoveType, SpecialMove> Board::getMoveInfo(const Move& move) const {
+std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) const {
     auto type = MoveType::Invalid;
     auto special = SpecialMove::None;
     auto src = move.src;
@@ -179,7 +179,7 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(const Move& move) const {
 }
 
 
-const Piece* Board::getPieceAt(const sf::Vector2i& sqr) const {
+const Piece* Board::getPieceAt(sf::Vector2i sqr) const {
     if (!isWithinBoard(sqr)) {
         return nullptr;
     }
@@ -190,7 +190,7 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isAttackedSqr(PieceColor color, const sf::Vector2i& sqr, const Move& incMove) const {
+bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) const {
     // Knight
     static const std::vector<sf::Vector2i> knightOffsets = {
         {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
@@ -294,7 +294,7 @@ void Board::boardInit() {
     }
 }
 
-void Board::pieceMoved(const Move& move) {
+void Board::pieceMoved(Move move) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
             observer->onPieceMoved(move);
@@ -318,7 +318,7 @@ void Board::pieceCaptured(const Piece* piece) {
     }
 }
 
-void Board::selectPromoteType(const sf::Vector2i& sqr, PieceType& type) {
+void Board::selectPromoteType(sf::Vector2i sqr, PieceType& type) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
             observer->onPromoteSelection(sqr, type);
@@ -330,7 +330,7 @@ void Board::selectPromoteType(const sf::Vector2i& sqr, PieceType& type) {
     }
 }
 
-void Board::piecePromoted(const sf::Vector2i& sqr, PieceType type, const Piece* oldPiece) {
+void Board::piecePromoted(sf::Vector2i sqr, PieceType type, const Piece* oldPiece) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
             observer->onPromotion(sqr, type, oldPiece);
@@ -346,7 +346,7 @@ void Board::addObserver(std::shared_ptr<BoardObserver> observer) {
     _observers.push_back(observer);
 }
 
-std::unique_ptr<Piece> Board::takePieceAt(const sf::Vector2i& sqr) {
+std::unique_ptr<Piece> Board::takePieceAt(sf::Vector2i sqr) {
     if (!getPieceAt(sqr)) {
         return nullptr;
     }

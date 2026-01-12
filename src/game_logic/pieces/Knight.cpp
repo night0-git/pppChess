@@ -3,7 +3,7 @@
 
 Knight::Knight(PieceColor color) : Piece(PieceType::Knight, color) {}
 
-vector<sf::Vector2i> Knight::validMoves(const Board& board, const sf::Vector2i& sqr) const {
+vector<sf::Vector2i> Knight::validMoves(const Board& board, sf::Vector2i sqr) const {
     std::vector<sf::Vector2i> validMoves;
     validMoves.reserve(8);
     static std::array<sf::Vector2i, 8> offsets = {{

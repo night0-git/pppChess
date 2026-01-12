@@ -12,23 +12,23 @@ namespace ui {
 
 class Button : public Component {
 public:
-    Button(const sf::Vector2f& pos, const sf::Vector2f& size,
+    Button(sf::Vector2f pos, sf::Vector2f size,
         const std::string& text, const sf::Font& font);
 
     Button& setCallback(std::function<void()> callback);
 
-    Button& setSize(const sf::Vector2f& size);
+    Button& setSize(sf::Vector2f size);
     Button& setTextSize(unsigned int size);
     Button& setTextScale(float scale);
 
-    Button& setBoxColor(const sf::Color& color);
-    Button& setTextColor(const sf::Color& color);
+    Button& setBoxColor(sf::Color color);
+    Button& setTextColor(sf::Color color);
 
     Button& setCornerRadius(float radius);
     Button& setDepthOffset(float offset);
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    void setPosition(const sf::Vector2f& pos) override;
+    void setPosition(sf::Vector2f pos) override;
    
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 

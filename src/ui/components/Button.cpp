@@ -1,7 +1,7 @@
 #include "../../../include/ui/components/Button.hpp"
 using ui::Button;
 
-Button::Button(const sf::Vector2f& pos, const sf::Vector2f& size, const std::string& text, const sf::Font& font)
+Button::Button(sf::Vector2f pos, sf::Vector2f size, const std::string& text, const sf::Font& font)
 : _text(font, text) {
     _body.setSize(size - sf::Vector2f(0, _depthOffset));
     _body.setFillColor(_topColor);
@@ -43,7 +43,7 @@ Button& Button::setCallback(std::function<void()> callback) {
     return *this;
 }
 
-Button& Button::setSize(const sf::Vector2f& size) {
+Button& Button::setSize(sf::Vector2f size) {
     _body.setSize(size - sf::Vector2f(0, _depthOffset));
     _shadow.setSize(_body.getSize());
     scaleAndCenterText();
@@ -61,7 +61,7 @@ Button& Button::setTextScale(float scale) {
     return *this;
 }
 
-Button& Button::setBoxColor(const sf::Color& color) {
+Button& Button::setBoxColor(sf::Color color) {
     _body.setFillColor(color);
     _shadow.setFillColor(darkened(color));
     _topColor = color;
@@ -69,7 +69,7 @@ Button& Button::setBoxColor(const sf::Color& color) {
     return *this;
 }
 
-Button& Button::setTextColor(const sf::Color& color) {
+Button& Button::setTextColor(sf::Color color) {
     _text.setFillColor(color);
     _textColor = color;
     return *this;
@@ -91,7 +91,7 @@ Button& Button::setDepthOffset(float offset) {
     return *this;
 }
 
-void Button::setPosition(const sf::Vector2f& pos) {
+void Button::setPosition(sf::Vector2f pos) {
     _body.setPosition(pos);
     _shadow.setPosition(pos);
     _text.setPosition(_body.getGlobalBounds().getCenter());

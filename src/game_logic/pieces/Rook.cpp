@@ -3,7 +3,7 @@
 
 Rook::Rook(PieceColor color) : Piece(PieceType::Rook, color) {}
 
-vector<sf::Vector2i> Rook::validMoves(const Board& board, const sf::Vector2i& sqr) const {
+vector<sf::Vector2i> Rook::validMoves(const Board& board, sf::Vector2i sqr) const {
     std::vector<sf::Vector2i> validMoves;
     validMoves.reserve(Board::SIZE * 2);
 

@@ -3,7 +3,7 @@
 
 Bishop::Bishop(PieceColor color) : Piece(PieceType::Bishop, color) {}
 
-vector<sf::Vector2i> Bishop::validMoves(const Board& board, const sf::Vector2i& sqr) const {
+vector<sf::Vector2i> Bishop::validMoves(const Board& board, sf::Vector2i sqr) const {
     vector<sf::Vector2i> validMoves;
     validMoves.reserve(Board::SIZE * 2);
 

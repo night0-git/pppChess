@@ -94,7 +94,7 @@ void BoardView::onBoardInit() {
     }
 }
 
-void BoardView::onPieceMoved(const Move& move) {
+void BoardView::onPieceMoved(Move move) {
     auto pcs = _board.getPieceAt(move.dest);
     if (_isMoving) {
         _pieceViews.at(pcs).animateToPosition(move.dest);
@@ -108,13 +108,13 @@ void BoardView::onPieceCaptured(const Piece* piece) {
     _pieceViews.erase(piece);
 }
 
-void BoardView::onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) {
+void BoardView::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
     // Display and choose promotion type here
     type = PieceType::Queen;
 }
 
 
-void BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) {
+void BoardView::onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPcs) {
     // Delete the old piece texture
     _pieceViews.erase(oldPcs);
 

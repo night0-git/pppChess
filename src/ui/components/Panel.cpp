@@ -1,7 +1,7 @@
 #include "../../../include/ui/components/Panel.hpp"
 using ui::Panel;
 
-Panel::Panel(const sf::Vector2f& size, const sf::Color& color)
+Panel::Panel(sf::Vector2f size, sf::Color color)
 : _background(size) {
     _background.setFillColor(color);
 }
@@ -10,7 +10,7 @@ void Panel::addComponent(std::shared_ptr<Component> component) {
     _components.push_back(std::move(component));
 }
 
-void Panel::setSize(const sf::Vector2f& size) {
+void Panel::setSize(sf::Vector2f size) {
     _background.setSize(size);
 }
 

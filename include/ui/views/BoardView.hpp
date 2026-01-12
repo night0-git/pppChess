@@ -18,14 +18,14 @@ public:
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void update(sf::Time dt);
-    std::function<bool(const Move& move)> _onMoveRequest;
+    std::function<bool(Move move)> _onMoveRequest;
 
 public:
     void onBoardInit() override;
-    void onPieceMoved(const Move& move) override;
+    void onPieceMoved(Move move) override;
     void onPieceCaptured(const Piece* piece) override;
-    void onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) override;
-    void onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) override;
+    void onPromoteSelection(sf::Vector2i sqr, PieceType& type) override;
+    void onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPcs) override;
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

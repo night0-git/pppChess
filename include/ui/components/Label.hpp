@@ -11,7 +11,7 @@ public:
     Label(const sf::Font& font, const std::string& text, unsigned int charSize = 24);
 
     void setText(const std::string& text);
-    void setFillColor(const sf::Color& color);
+    void setFillColor(sf::Color color);
     void setCharSize(unsigned int size);
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

@@ -26,7 +26,7 @@ void ChessGame::addBoardObserver(std::shared_ptr<BoardObserver> observer) {
     _board.addObserver(observer);
 }
 
-bool ChessGame::attemptMove(const Move& move) {
+bool ChessGame::attemptMove(Move move) {
     auto srcPtr = _board.getPieceAt(move.src);
     if (srcPtr && srcPtr->color() == _currentTurn) {
         MoveResult res = _board.movePiece(move);
