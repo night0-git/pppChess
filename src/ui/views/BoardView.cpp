@@ -1,12 +1,12 @@
 #include "../../../include/ui/views/BoardView.hpp"
 #include <iostream>
 #include <cmath>
+using ui::BoardView;
 
-ui::BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
-: _textures(textures), _board(board), _draggedPiece(nullptr), _selectedSqr(std::nullopt),
-_isDeselecting(false) {}
+BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
+: _textures(textures), _board(board) {}
 
-void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
+void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
     sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
     sf::Vector2f localPos = getTransform().getInverse().transformPoint(worldPos);
@@ -22,10 +22,12 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
                 if (*_selectedSqr == sqr && !_isDeselecting) {
                     _isDeselecting = true;
                 }
+                _isMoving = true;
                 if (_onMoveRequest && _onMoveRequest({*_selectedSqr, sqr})) {
                     _selectedSqr = std::nullopt;
                     return;
                 }
+                _isMoving = false;
             }
             auto pcs = _board.getPieceAt(sqr);
             if (pcs) {
@@ -50,7 +52,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
             sf::Vector2i dest = localPosToSqr(localPos);
             // Check piece deselection
             if (*_selectedSqr == dest && _isDeselecting) {
-                _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+                _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
                 _selectedSqr = std::nullopt;
                 _isDeselecting = false;
             }
@@ -58,7 +60,7 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
                 bool moved = _onMoveRequest && _onMoveRequest({*_selectedSqr, dest});
                 if (!moved) {
                     // Snap back
-                    _pieceViews.at(_draggedPiece).updatePosition(*_selectedSqr);
+                    _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
                 }
                 else {
                     _selectedSqr = std::nullopt;
@@ -69,7 +71,13 @@ void ui::BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& 
     }
 }
 
-void ui::BoardView::onBoardInit() {
+void BoardView::update(sf::Time dt) {
+    for (auto& [piece, view] : _pieceViews) {
+        view.update(dt);
+    }
+}
+
+void BoardView::onBoardInit() {
     _pieceViews.clear();
     for (int x = 0; x < Board::SIZE; x++) {
         for (int y = 0; y < Board::SIZE; y++) {
@@ -80,29 +88,33 @@ void ui::BoardView::onBoardInit() {
                 _pieceViews.emplace(std::piecewise_construct,
                                     std::forward_as_tuple(pcs),
                                     std::forward_as_tuple(texture, _tileSize, *pcs));
-                _pieceViews.at(pcs).updatePosition({x, y});
+                _pieceViews.at(pcs).snapToPosition({x, y});
             }
         }
     }
 }
 
-void ui::BoardView::onPieceMoved(const Move& move) {
+void BoardView::onPieceMoved(const Move& move) {
     auto pcs = _board.getPieceAt(move.dest);
-    _pieceViews.at(pcs).updatePosition(move.dest);
-    // insert sliding animation
+    if (_isMoving) {
+        _pieceViews.at(pcs).animateToPosition(move.dest);
+        _isMoving = false;
+    } else {        
+        _pieceViews.at(pcs).snapToPosition(move.dest);
+    }
 }
 
-void ui::BoardView::onPieceCaptured(const Piece* piece) {
+void BoardView::onPieceCaptured(const Piece* piece) {
     _pieceViews.erase(piece);
 }
 
-void ui::BoardView::onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) {
+void BoardView::onPromoteSelection(const sf::Vector2i& sqr, PieceType& type) {
     // Display and choose promotion type here
     type = PieceType::Queen;
 }
 
 
-void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) {
+void BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const Piece* oldPcs) {
     // Delete the old piece texture
     _pieceViews.erase(oldPcs);
 
@@ -113,12 +125,12 @@ void ui::BoardView::onPromotion(const sf::Vector2i& sqr, PieceType type, const P
         _pieceViews.insert_or_assign(pcs, PieceView(texture, _tileSize, *pcs));
         auto it = _pieceViews.find(pcs);
         if (it != _pieceViews.end()) {
-            it->second.updatePosition(sqr);
+            it->second.snapToPosition(sqr);
         }
     }
 }
 
-void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     // Draw grid;
@@ -150,7 +162,7 @@ void ui::BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     }
 }
 
-sf::Vector2i ui::BoardView::localPosToSqr(const sf::Vector2f& localPos) const {
+sf::Vector2i BoardView::localPosToSqr(const sf::Vector2f& localPos) const {
     int col = static_cast<int>(std::floor(localPos.x / _tileSize));
     int row = static_cast<int>(std::floor(localPos.y / _tileSize));
     return sf::Vector2i(row, col);

@@ -43,7 +43,7 @@ void GameState::handleEvent(const sf::Event& event) {
 }
 
 void GameState::update(sf::Time dt) {
-
+    _boardView->update(dt);
 }
 
 void GameState::render() {

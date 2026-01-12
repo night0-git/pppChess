@@ -12,16 +12,26 @@ class PieceView : public sf::Drawable, public sf::Transformable {
 public:
     PieceView(const sf::Texture& texture, float tileSize, const Piece& piece);
     
-    void updatePosition(const sf::Vector2i& sqr);
+    void snapToPosition(sf::Vector2i sqr);
+    void animateToPosition(sf::Vector2i sqr);
 
-protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+    void update(sf::Time dt);
 
 private:
+    sf::Vector2f sqrToPos(sf::Vector2i sqr) const;
+
     void normalizeSprite();
     const Piece* _piece;
     sf::Sprite _sprite;
     float _tileSize;
+
+    // Animation members
+    bool _isAnimating = false;
+    sf::Time _animationTime;
+    sf::Time _animationDuration = sf::seconds(0.1f);
+    sf::Vector2f _startPos;
+    sf::Vector2f _targetPos;
 };
 
 }

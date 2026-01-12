@@ -17,6 +17,7 @@ public:
     BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board);
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void update(sf::Time dt);
     std::function<bool(const Move& move)> _onMoveRequest;
 
 public:
@@ -39,9 +40,10 @@ private:
     const sf::Color _darkColor  = sf::Color(181, 136, 99);
 
     // For event handling
-    const Piece* _draggedPiece;
-    std::optional<sf::Vector2i> _selectedSqr;
-    bool _isDeselecting;
+    bool _isMoving = false;
+    const Piece* _draggedPiece = nullptr;
+    std::optional<sf::Vector2i> _selectedSqr = std::nullopt;
+    bool _isDeselecting = false;
     sf::Vector2i localPosToSqr(const sf::Vector2f& localPos) const;
 };
 
