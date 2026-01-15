@@ -3,7 +3,7 @@
 
 Pawn::Pawn(PieceColor color) : Piece(PieceType::Pawn, color) {}
 
-vector<sf::Vector2i> Pawn::validMoves(const Board& board, sf::Vector2i sqr) const {
+vector<sf::Vector2i> Pawn::validMoves(Board& board, sf::Vector2i sqr) const {
     std::vector<sf::Vector2i> validMoves;
     validMoves.reserve(4);
 

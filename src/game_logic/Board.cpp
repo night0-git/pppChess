@@ -1,20 +1,18 @@
 #include "../../include/game_logic/Board.hpp"
 #include <algorithm>
-#include <iostream>
+
 Board::Board() {
     setupDefaultBoard();
 }
 
 MoveResult Board::movePiece(Move move) {
-    std::pair<MoveType, SpecialMove> moveInfo = getMoveInfo(move);
-    MoveType type = moveInfo.first;
-    SpecialMove special = moveInfo.second;
+    MoveInfo info = getMoveInfo(move);
 
-    if (type == MoveType::Invalid) {
+    if (info.type == MoveType::Invalid) {
         return MoveResult(false);
     }
 
-    if (special != SpecialMove::EnPassant) {
+    if (info.special != SpecialMove::EnPassant) {
         _enPassantTarget.reset();
     }
 
@@ -25,12 +23,20 @@ MoveResult Board::movePiece(Move move) {
     auto sourcePcs = takePieceAt(src);
     auto destPcs = takePieceAt(dest);
 
+    // Update king position
+    if (sourcePcs->type() == PieceType::King) {
+        if (sourcePcs->color() == PieceColor::White) {
+            _whiteKingPos = dest;
+        } else {
+            _blackKingPos = dest;
+        }
+    }
     sourcePcs->setMoved();
     _grid[dest.x][dest.y] = std::move(sourcePcs);
     pieceMoved(move);
     
-    if (special == SpecialMove::EnPassant) {
-        if (type == MoveType::Move) {
+    if (info.special == SpecialMove::EnPassant) {
+        if (info.type == MoveType::Move) {
             int forward = (sourcePtr->color() == PieceColor::Black ? 1 : -1);
             _enPassantTarget = src + sf::Vector2i{forward, 0};
         }
@@ -46,7 +52,7 @@ MoveResult Board::movePiece(Move move) {
         }
     }
 
-    else if (special == SpecialMove::Castle) {
+    else if (info.special == SpecialMove::Castle) {
         sf::Vector2i rookSrc, rookDest;
         if (dest.y > src.y) { // Kingside castling
             rookSrc = {src.x, SIZE - 1};
@@ -63,14 +69,14 @@ MoveResult Board::movePiece(Move move) {
         }
     }
 
-    else if (special == SpecialMove::Promote) {
+    else if (info.special == SpecialMove::Promote) {
         PieceType promoteType;
         selectPromoteType(dest, promoteType);
         auto oldPawn = promote(dest, promoteType);
         piecePromoted(dest, promoteType, oldPawn.get());
     }
 
-    if (type == MoveType::Capture && destPcs) {
+    if (info.type == MoveType::Capture && destPcs) {
         pieceCaptured(destPcs.get());
         return MoveResult(true, std::move(destPcs));
     }
@@ -114,7 +120,7 @@ bool Board::isValidMove(PieceColor srcColor, sf::Vector2i dest) const {
     return (!destPtr || srcColor != destPtr->color());
 }
 
-std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) const {
+MoveInfo Board::getMoveInfo(Move move) {
     auto type = MoveType::Invalid;
     auto special = SpecialMove::None;
     auto src = move.src;
@@ -124,31 +130,21 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) const {
     auto destPtr = getPieceAt(dest);
 
     if (!isWithinBoard(src) || !isWithinBoard(dest) || !isValidMove(sourcePtr->color(), dest)) {
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
     if (!sourcePtr) {
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
     std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
     if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
-    // Check if the move leaves the king open
-    if (sourcePtr->type() != PieceType::King) {
-        for (int x = 0; x < SIZE; x++) {
-            for (int y = 0; y < SIZE; y++) {
-                auto pcsPtr = getPieceAt({x, y});
-                if (pcsPtr && pcsPtr->type() == PieceType::King && pcsPtr->color() == sourcePtr->color()) {
-                    if (isAttackedSqr(sourcePtr->color(), {x, y}, move)) {
-                        type = MoveType::Invalid;
-                        return std::make_pair(type, special);
-                    }
-                }
-            }
-        }
+    if (!isMoveSafe(move)) {
+        type = MoveType::Invalid;
+        return MoveInfo(type, special);
     }
 
     type = (destPtr ? MoveType::Capture : MoveType::Move);
@@ -156,7 +152,7 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) const {
     bool isCastling = (sourcePtr->type() == PieceType::King && std::abs(src.y - dest.y) == 2);
     if (isCastling) {
         special = SpecialMove::Castle;
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
     bool isEnPassantTarget = (sourcePtr->type() == PieceType::Pawn && std::abs(src.x - dest.x) == 2)
@@ -164,18 +160,18 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) const {
     if (isEnPassantTarget) {
         type = (src.y == dest.y ? MoveType::Move : MoveType::Capture);
         special = SpecialMove::EnPassant;
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
     bool isPromoting = (sourcePtr->type() == PieceType::Pawn
                         && (dest.x == 0 || dest.x == SIZE - 1));
     if (isPromoting) {
         special = SpecialMove::Promote;
-        return std::make_pair(type, special);
+        return MoveInfo(type, special);
     }
 
     special = SpecialMove::None;
-    return std::make_pair(type, special);
+    return MoveInfo(type, special);
 }
 
 
@@ -190,13 +186,14 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
-bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) const {
+bool Board::isChecked(PieceColor color) const {
+    sf::Vector2i kingSqr = color == PieceColor::White ? _whiteKingPos : _blackKingPos;
     // Knight
     static const std::vector<sf::Vector2i> knightOffsets = {
         {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}
     };
     for (const auto& offset : knightOffsets) {
-        sf::Vector2i pos = sqr + offset;
+        sf::Vector2i pos = kingSqr + offset;
         if (!isValidMove(color, pos)) continue;
         auto piece = getPieceAt(pos);
         if (piece && piece->type() == PieceType::Knight) {
@@ -207,8 +204,8 @@ bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) cons
     // Pawn
     int forward = (color == PieceColor::White ? -1 : 1); 
     std::vector<sf::Vector2i> pawnAttacks = {
-        {sqr.x + forward, sqr.y + 1},
-        {sqr.x + forward, sqr.y - 1}
+        {kingSqr.x + forward, kingSqr.y + 1},
+        {kingSqr.x + forward, kingSqr.y - 1}
     };
     for (const auto& pos : pawnAttacks) {
         if (!isValidMove(color, pos)) continue;
@@ -221,15 +218,8 @@ bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) cons
     // Sliding check
     static const std::vector<sf::Vector2i> orthoDirs = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
     for (const auto& dir : orthoDirs) {
-        sf::Vector2i pos = sqr + dir;
-        while (isWithinBoard(pos)) {
-            if (pos == incMove.src) {
-                pos += dir;
-                continue;
-            }
-            else if (pos == incMove.dest) {
-                break;
-            }
+        sf::Vector2i pos = kingSqr + dir;
+        while (isValidMove(color, pos)) {
             auto piece = getPieceAt(pos);
             if (piece) {
                 // Found an attacking enemy
@@ -245,15 +235,8 @@ bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) cons
     // Diagonal check
     static const std::vector<sf::Vector2i> diagDirs = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
     for (const auto& dir : diagDirs) {
-        sf::Vector2i pos = sqr + dir;
-        while (isWithinBoard(pos)) {
-            if (pos == incMove.src) {
-                pos += dir;
-                continue;
-            }
-            else if (pos == incMove.dest) {
-                break;
-            }
+        sf::Vector2i pos = kingSqr + dir;
+        while (isValidMove(color, pos)) {
             auto piece = getPieceAt(pos);
             if (piece) {
                 // Found an attacking enemy
@@ -271,12 +254,132 @@ bool Board::isAttackedSqr(PieceColor color, sf::Vector2i sqr, Move incMove) cons
         {0, 1}, {0, -1}, {1, 0}, {-1, 0}, {1, 1}, {1, -1}, {-1, 1}, {-1, -1}
     };
     for (const auto& offset : kingOffsets) {
-        sf::Vector2i pos = sqr + offset;
+        sf::Vector2i pos = kingSqr + offset;
         if (!isValidMove(color, pos)) continue;
         auto piece = getPieceAt(pos);
         if (piece && piece->type() == PieceType::King) {
             return true;
         }
+    }
+
+    return false;
+}
+
+bool Board::isMoveSafe(Move move) {
+    auto srcPtr = getPieceAt(move.src);
+    if (!srcPtr || !isValidMove(srcPtr->color(), move.dest)) {
+        return false;
+    }
+
+    auto destPcs = takePieceAt(move.dest);
+    sf::Vector2i oldKingPos = (srcPtr->color() == PieceColor::White) ? _whiteKingPos : _blackKingPos;
+    
+    if (srcPtr->type() == PieceType::King) {
+        if (srcPtr->color() == PieceColor::White) _whiteKingPos = move.dest;
+        else _blackKingPos = move.dest;
+    }
+    _grid[move.dest.x][move.dest.y] = std::move(_grid[move.src.x][move.src.y]);
+    
+    bool safe = !isChecked(srcPtr->color());
+
+    // Revert move
+    _grid[move.src.x][move.src.y] = std::move(_grid[move.dest.x][move.dest.y]);
+    _grid[move.dest.x][move.dest.y] = std::move(destPcs);
+    // Restore king pos
+    if (srcPtr->color() == PieceColor::White) _whiteKingPos = oldKingPos;
+    else _blackKingPos = oldKingPos;
+
+    return safe;
+}
+
+bool Board::isCheckmate(PieceColor color) {
+    return isChecked(color) && !hasLegalMoves(color);
+}
+
+bool Board::isStalemate(PieceColor color) {
+    return !isChecked(color) && !hasLegalMoves(color);
+}
+
+bool Board::hasLegalMoves(PieceColor color) {
+    auto allMoves = getAllValidMoves(color);
+    for (const auto& move : allMoves) {
+        if (isMoveSafe(move)) {
+            return true; 
+        }
+    }
+    return false;
+}
+
+std::vector<Move> Board::getAllValidMoves(PieceColor color) {
+    std::vector<Move> allValidMoves;
+    for (int x = 0; x < SIZE; x++) {
+        for (int y = 0; y < SIZE; y++) {
+            auto pcs = getPieceAt({x, y});
+            if (pcs && pcs->color() == color) {
+                std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
+                // Convert to Move objects
+                for (auto& dest : dests) {
+                    allValidMoves.push_back({{x, y}, dest});
+                }
+            }
+        }
+    }
+    return allValidMoves;
+}
+
+bool Board::insufficientMaterial() const {
+    short whitePieces = 0;
+    short blackPieces = 0;
+    short whiteKnights = 0;
+    short whiteBishops = 0;
+    short blackKnights = 0;
+    short blackBishops = 0;
+
+    for (int x = 0; x < SIZE; x++) {
+        for (int y = 0; y < SIZE; y++) {
+            auto pcs = getPieceAt({x, y});
+            if (!pcs) continue;
+
+            if (pcs->type() == PieceType::Pawn || 
+                pcs->type() == PieceType::Rook || 
+                pcs->type() == PieceType::Queen) {
+                return false; // Major pieces or Pawns always allow checkmate
+            }
+
+            if (pcs->color() == PieceColor::White) {
+                whitePieces++;
+                if (pcs->type() == PieceType::Bishop)
+                    whiteBishops++;
+                else if (pcs->type() == PieceType::Knight)
+                    whiteKnights++;
+            } else {
+                blackPieces++;
+                if (pcs->type() == PieceType::Bishop)
+                    blackBishops++;
+                else if (pcs->type() == PieceType::Knight)
+                    blackKnights++;
+            }
+        }
+    }
+
+    // King vs King
+    if (whitePieces == 1 && blackPieces == 1) return true;
+
+    // King vs King + 1 minor
+    if ((whitePieces == 1 && blackPieces == 2) || 
+        (whitePieces == 2 && blackPieces == 1)) {
+        return true;
+    }
+
+    // King + 1 minor vs King + 1 minor
+    if (whitePieces == 2 && blackPieces == 2) {
+        return true; 
+    }
+
+    // King + 2 knights vs King
+    if ((whitePieces == 1 && blackPieces == 3 && blackKnights == 2) ||
+        (blackPieces == 1 && whitePieces == 3 && whiteKnights == 2)) {
+        return true;
     }
 
     return false;

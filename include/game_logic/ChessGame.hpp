@@ -11,6 +11,8 @@ class ChessGame {
 public:
     ChessGame();
 
+    GameStatus status() const;
+
     void reset();
     const Piece* getLastCaptured() const;
 
@@ -22,7 +24,6 @@ public:
     
 
 private:
-    std::optional<sf::Vector2i> selectedSqr;
     Board _board;
     GameStatus _status;
     PieceColor _currentTurn;
