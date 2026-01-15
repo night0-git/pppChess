@@ -2,6 +2,7 @@
 #include "../../include/states/MenuState.hpp"
 #include "../../include/states/SettingsState.hpp"
 #include "../../include/core/StateManager.hpp"
+#include <iostream>
 
 GameState::GameState(Context& context) : State(context),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), _game.board())) {}
@@ -22,7 +23,22 @@ void GameState::init() {
     _context.textures->load(ui::TextureId::BKing, "./assets/custom/pieces/BKing.png");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
-        return _game.attemptMove(move);
+        bool success = _game.attemptMove(move);
+        if (success) {
+            GameStatus status = _game.status();
+            if (status != GameStatus::Active) {
+                if (status == GameStatus::WhiteWon) {
+                    std::cerr << "White won!\n";
+                }
+                else if (status == GameStatus::BlackWon) {
+                    std::cerr << "Black won!\n";
+                }
+                else {
+                    std::cerr << "Draw!";
+                }
+            }
+        }
+        return success;
     };
     _game.reset();
 }

@@ -38,16 +38,41 @@ bool ChessGame::attemptMove(Move move) {
             if (res.captured) {
                 _capturedPiece.push_back(std::move(res.captured));
             }
-            if (_board.isCheckmate(!srcPtr->color())) {
+
+            PieceColor enemyColor = !srcPtr->color();
+            if (_board.isCheckmate(enemyColor)) {
                 _status = srcPtr->color() == PieceColor::White ? GameStatus::WhiteWon : GameStatus::BlackWon;
             }
-            else if (_board.isStalemate(!srcPtr->color())) {
+            else if (_board.isStalemate(enemyColor) || _board.insufficientMaterial()) {
+                _status = GameStatus::Draw;
+            }
+            else if (isRepetition(move)) {
                 _status = GameStatus::Draw;
             }
 
+            _moveHistory.push_back(move);
             _currentTurn = !_currentTurn;
             return true;
         }
     }
     return false;
+}
+
+bool ChessGame::isRepetition(Move move) const {
+    int n = _moveHistory.size();
+    if (n < 8) {
+        return false;
+    }
+
+    if (!(_moveHistory[n - 4] == move && _moveHistory[n - 8] == move)) {
+        return false;
+    }
+
+    for (int i = 1; i <= 3; i++) {
+        if (!(_moveHistory[n - i] == _moveHistory[n - i - 4])) {
+            return false;
+        }
+    }
+
+    return true;
 }

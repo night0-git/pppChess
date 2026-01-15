@@ -30,6 +30,7 @@ private:
 
     std::vector<Move> _moveHistory;
     std::vector<std::unique_ptr<Piece>> _capturedPiece;
+    bool isRepetition(Move move) const;
 };
 
 #endif

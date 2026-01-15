@@ -12,6 +12,9 @@ struct Move {
     sf::Vector2i src;
     sf::Vector2i dest;
     Move(sf::Vector2i s, sf::Vector2i d) : src(s), dest(d) {};
+    bool operator==(const Move& other) const {
+        return src == other.src && dest == other.dest;
+    }
 };
 
 struct MoveResult {
@@ -46,6 +49,7 @@ public:
     bool isMoveSafe(Move move);
     bool isCheckmate(PieceColor color);
     bool isStalemate(PieceColor color);
+    bool insufficientMaterial() const;
 
     // Getters
     const Piece* getPieceAt(sf::Vector2i sqr) const;
@@ -57,7 +61,6 @@ public:
 private:
     std::vector<Move> getAllValidMoves(PieceColor color);
     bool hasLegalMoves(PieceColor color);
-    bool insufficientMaterial() const;
 
     // Notifiers
     void pieceMoved(Move move);
