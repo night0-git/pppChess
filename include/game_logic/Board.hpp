@@ -44,12 +44,11 @@ public:
     static const int SIZE = 8;
     bool isValidMove(PieceColor srcColor, sf::Vector2i dest) const;
     static bool isWithinBoard(sf::Vector2i sqr);
-    MoveInfo getMoveInfo(Move move);
     bool isChecked(PieceColor color) const;
     bool isMoveSafe(Move move);
-    bool isCheckmate(PieceColor color);
-    bool isStalemate(PieceColor color);
+    bool hasLegalMoves(PieceColor color);
     bool insufficientMaterial() const;
+    std::vector<Move> getAllValidMoves(PieceColor color);
 
     // Getters
     const Piece* getPieceAt(sf::Vector2i sqr) const;
@@ -59,8 +58,7 @@ public:
     void addObserver(std::shared_ptr<BoardObserver> observer);
     
 private:
-    std::vector<Move> getAllValidMoves(PieceColor color);
-    bool hasLegalMoves(PieceColor color);
+    MoveInfo getMoveInfo(Move move);
 
     // Notifiers
     void pieceMoved(Move move);

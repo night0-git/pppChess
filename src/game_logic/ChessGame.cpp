@@ -40,10 +40,14 @@ bool ChessGame::attemptMove(Move move) {
             }
 
             PieceColor enemyColor = !srcPtr->color();
-            if (_board.isCheckmate(enemyColor)) {
-                _status = srcPtr->color() == PieceColor::White ? GameStatus::WhiteWon : GameStatus::BlackWon;
+            if (!_board.hasLegalMoves(enemyColor)) {
+                if (_board.isChecked(enemyColor)) {
+                    _status = srcPtr->color() == PieceColor::White ? GameStatus::WhiteWon : GameStatus::BlackWon;
+                } else {
+                    _status = GameStatus::Draw;
+                }
             }
-            else if (_board.isStalemate(enemyColor) || _board.insufficientMaterial()) {
+            else if (_board.insufficientMaterial()) {
                 _status = GameStatus::Draw;
             }
             else if (isRepetition(move)) {

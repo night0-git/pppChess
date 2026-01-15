@@ -292,14 +292,6 @@ bool Board::isMoveSafe(Move move) {
     return safe;
 }
 
-bool Board::isCheckmate(PieceColor color) {
-    return isChecked(color) && !hasLegalMoves(color);
-}
-
-bool Board::isStalemate(PieceColor color) {
-    return !isChecked(color) && !hasLegalMoves(color);
-}
-
 bool Board::hasLegalMoves(PieceColor color) {
     auto allMoves = getAllValidMoves(color);
     for (const auto& move : allMoves) {
@@ -308,23 +300,6 @@ bool Board::hasLegalMoves(PieceColor color) {
         }
     }
     return false;
-}
-
-std::vector<Move> Board::getAllValidMoves(PieceColor color) {
-    std::vector<Move> allValidMoves;
-    for (int x = 0; x < SIZE; x++) {
-        for (int y = 0; y < SIZE; y++) {
-            auto pcs = getPieceAt({x, y});
-            if (pcs && pcs->color() == color) {
-                std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
-                // Convert to Move objects
-                for (auto& dest : dests) {
-                    allValidMoves.push_back({{x, y}, dest});
-                }
-            }
-        }
-    }
-    return allValidMoves;
 }
 
 bool Board::insufficientMaterial() const {
@@ -383,6 +358,23 @@ bool Board::insufficientMaterial() const {
     }
 
     return false;
+}
+
+std::vector<Move> Board::getAllValidMoves(PieceColor color) {
+    std::vector<Move> allValidMoves;
+    for (int x = 0; x < SIZE; x++) {
+        for (int y = 0; y < SIZE; y++) {
+            auto pcs = getPieceAt({x, y});
+            if (pcs && pcs->color() == color) {
+                std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
+                // Convert to Move objects
+                for (auto& dest : dests) {
+                    allValidMoves.push_back({{x, y}, dest});
+                }
+            }
+        }
+    }
+    return allValidMoves;
 }
 
 void Board::boardInit() {
