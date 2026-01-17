@@ -5,18 +5,19 @@
 #include "../../include/ui/components/Component.hpp"
 
 MenuState::MenuState(Context& context) : State(context),
-_menu({500, 150}, 20) {
+_menu({500, 150}, 30) {
     _menu.setPosition({200, 200});
-    auto start = std::make_unique<ui::Button>("Start game", _font);
+    auto start = std::make_unique<ui::Button>(sf::Vector2f{500, 150}, 50, "Start game", _font);
     start->setCallback([this]() {
         _context.states->pushState(std::make_unique<GameState>(_context), false);
     });
     _menu.addComponent(std::move(start));
-    auto settings = std::make_unique<ui::Button>("Settings", _font);
+    auto settings = std::make_unique<ui::Button>(sf::Vector2f{500, 300}, 50, "Settings", _font);
     settings->setCallback([this]() {
         _context.states->pushState(std::make_unique<SettingsState>(_context), false);
     });
-    _menu.addComponent(std::move(settings));
+    _menu.addComponent(std::move(settings), false);
+    // _menu.setSize({_menu.getSize().x * 2, _menu.getSize().y * 2});
 }
 
 void MenuState::init() {

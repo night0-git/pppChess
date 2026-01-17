@@ -14,7 +14,7 @@ public:
     Panel(sf::Vector2f unitSize, float spacing = 20.f);
     virtual ~Panel() = default;
 
-    virtual void addComponent(std::unique_ptr<Component> component) = 0;
+    virtual void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) = 0;
     
     sf::Vector2f getSize() const override;
     sf::Vector2f getUnitSize() const;
@@ -28,7 +28,7 @@ public:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 protected:
-    sf::Vector2f _unitSize = {500, 500};
+    sf::Vector2f _unitSize = {300, 300};
     sf::Vector2f _size;
     std::vector<std::unique_ptr<Component>> _components;
     float _spacing = 20.f;
@@ -39,7 +39,7 @@ class VerticalPanel : public Panel {
 public:
     VerticalPanel(sf::Vector2f unitSize, float spacing = 20.f);
 
-    void addComponent(std::unique_ptr<Component> component) override;
+    void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
 
     void setUnitSize(sf::Vector2f size) override;
     void setSpacing(float spacing) override;
@@ -49,7 +49,7 @@ class HorizontalPanel : public Panel {
 public:
     HorizontalPanel(sf::Vector2f unitSize, float spacing = 20.f);
 
-    void addComponent(std::unique_ptr<Component> component) override;
+    void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
     
     void setUnitSize(sf::Vector2f size) override;
     void setSpacing(float spacing) override;

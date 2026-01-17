@@ -55,12 +55,18 @@ void Panel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 VerticalPanel::VerticalPanel(sf::Vector2f unitSize, float spacing)
 : Panel(unitSize, spacing) {}
 
-void VerticalPanel::addComponent(std::unique_ptr<Component> component) {
-    if (component->getSize() != _unitSize) {
+void VerticalPanel::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
+    sf::Vector2f oldSize = component->getSize();
+    if (keepRatio) {
+        float scale = _unitSize.x / oldSize.x;
+        component->setSize(sf::Vector2f(oldSize.x * scale, oldSize.y) * scale);
+    }
+    else {
         component->setSize(_unitSize);
     }
+
     component->setPosition(_cursor);
-    _cursor += sf::Vector2f(0, _unitSize.y + _spacing);
+    _cursor += sf::Vector2f(0, component->getSize().y + _spacing);
     _components.push_back(std::move(component));
 }
 
@@ -70,8 +76,14 @@ void VerticalPanel::setUnitSize(sf::Vector2f size) {
     _cursor = {0, 0};
     for (auto& component : _components) {
         component->setPosition(_cursor);
-        component->setSize(size);
-        _cursor += {0, size.y + _spacing};
+        sf::Vector2f oldSize = component->getSize();
+        if (oldSize.y == _unitSize.y) {
+            component->setSize(size);
+        } else {
+            float scale = size.x / _unitSize.x;
+            component->setSize(oldSize * scale);
+        }
+        _cursor += {0, component->getSize().y + _spacing};
     }
     _unitSize = size;
 }
@@ -82,7 +94,7 @@ void VerticalPanel::setSpacing(float spacing) {
     _cursor = {0, 0};
     for (auto& component : _components) {
         component->setPosition(_cursor);
-        _cursor += sf::Vector2f(0, _unitSize.y + spacing);
+        _cursor += sf::Vector2f(0, component->getSize().y + spacing);
     }
     _spacing = spacing;
 }
@@ -90,32 +102,46 @@ void VerticalPanel::setSpacing(float spacing) {
 HorizontalPanel::HorizontalPanel(sf::Vector2f unitSize, float spacing)
 : Panel(unitSize, spacing) {}
 
-void HorizontalPanel::addComponent(std::unique_ptr<Component> component) {
-    if (component->getSize() != _unitSize) {
+void HorizontalPanel::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
+    sf::Vector2f oldSize = component->getSize();
+    if (keepRatio) {
+        float scale = _unitSize.y / oldSize.y;
+        component->setSize(sf::Vector2f(oldSize.x * scale, oldSize.y) * scale);
+    }
+    else {
         component->setSize(_unitSize);
     }
+
     component->setPosition(_cursor);
-    _cursor += sf::Vector2f(_unitSize.x + _spacing, 0);
+    _cursor += sf::Vector2f(component->getSize().x + _spacing, 0);
     _components.push_back(std::move(component));
 }
 
 void HorizontalPanel::setUnitSize(sf::Vector2f size) {
+    if (size == _unitSize) return;
+
     _cursor = {0, 0};
     for (auto& component : _components) {
         component->setPosition(_cursor);
-        component->setSize(size);
-        _cursor += {size.x + _spacing, 0};
+        sf::Vector2f oldSize = component->getSize();
+        if (oldSize.x == _unitSize.x) {
+            component->setSize(size);
+        } else {
+            float scale = size.y / _unitSize.y;
+            component->setSize(oldSize * scale);
+        }
+        _cursor += {0, component->getSize().y + _spacing};
     }
     _unitSize = size;
 }
 
 void HorizontalPanel::setSpacing(float spacing) {
-    float offset = spacing - _spacing;
-    _spacing = spacing;
-    if (_components.size() <= 1) return;
+    if (spacing == _spacing) return;
 
-    for (int i = 1; i < _components.size(); i++) {
-        auto newPos = _components[i]->getPosition() + sf::Vector2f(i * offset, 0);
-        _components[i]->setPosition(newPos);
+    _cursor = {0, 0};
+    for (auto& component : _components) {
+        component->setPosition(_cursor);
+        _cursor += sf::Vector2f(component->getSize().x + spacing, 0);
     }
+    _spacing = spacing;
 }
