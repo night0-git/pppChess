@@ -16,11 +16,9 @@ Button::Button(sf::Vector2f pos, sf::Vector2f size, const std::string& text, con
     scaleAndCenterText();
 }
 
-void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
+void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
     sf::FloatRect bounds = getTransform().transformRect(_body.getGlobalBounds());
-    bool isHovered = bounds.contains(worldPos);
+    bool isHovered = bounds.contains(mouseWorldPos);
 
     if (event.is<sf::Event::MouseButtonPressed>() && isHovered) {
         _body.move({0, _depthOffset / 2});
@@ -38,15 +36,20 @@ void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window)
     }
 }
 
-Button& Button::setCallback(std::function<void()> callback) {
-    _callback = std::move(callback);
-    return *this;
+void Button::update(sf::Time dt) {
+    
 }
 
-Button& Button::setSize(sf::Vector2f size) {
-    _body.setSize(size - sf::Vector2f(0, _depthOffset));
-    _shadow.setSize(_body.getSize());
-    scaleAndCenterText();
+void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+    states.transform *= getTransform();
+
+    target.draw(_shadow, states);
+    target.draw(_body, states);
+    target.draw(_text, states);
+}
+
+Button& Button::setCallback(std::function<void()> callback) {
+    _callback = std::move(callback);
     return *this;
 }
 
@@ -91,18 +94,14 @@ Button& Button::setDepthOffset(float offset) {
     return *this;
 }
 
-void Button::setPosition(sf::Vector2f pos) {
-    _body.setPosition(pos);
-    _shadow.setPosition(pos);
-    _text.setPosition(_body.getGlobalBounds().getCenter());
+sf::Vector2f Button::getSize() const {
+    return _body.getSize();
 }
 
-void ui::Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
-    states.transform *= getTransform();
-
-    target.draw(_shadow, states);
-    target.draw(_body, states);
-    target.draw(_text, states);
+void Button::setSize(sf::Vector2f size) {
+    _body.setSize(size - sf::Vector2f(0, _depthOffset));
+    _shadow.setSize(_body.getSize());
+    scaleAndCenterText();
 }
 
 void Button::centerText() {

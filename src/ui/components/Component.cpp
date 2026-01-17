@@ -3,6 +3,10 @@
 #include <algorithm>
 using ui::Component;
 
+void Component::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {}
+
+void Component::update(sf::Time dt) {}
+
 sf::Color Component::lightened(sf::Color color, float amount) {
     float factor = 1.f + amount;
     return sf::Color(

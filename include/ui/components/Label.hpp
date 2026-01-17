@@ -1,25 +1,30 @@
-#ifndef _LABEL_H_
-#define _LABEL_H_
+// #ifndef _LABEL_H_
+// #define _LABEL_H_
 
-#include <SFML/Graphics.hpp>
-#include <string>
+// #include "Component.hpp"
+// #include "RoundedRect.hpp"
+// #include <string>
 
-namespace ui {
+// namespace ui {
 
-class Label : public sf::Drawable, public sf::Transformable {
-public:
-    Label(const sf::Font& font, const std::string& text, unsigned int charSize = 24);
+// class Label : public Component {
+// public:
+//     Label(const std::string& text, const sf::Font& font, unsigned int charSize = 24);
 
-    void setText(const std::string& text);
-    void setFillColor(sf::Color color);
-    void setCharSize(unsigned int size);
+//     void setText(const std::string& text);
+//     void setFillColor(sf::Color color);
+//     void setCharSize(unsigned int size);
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
+//     sf::Vector2f getSize() const override;
+//     void setSize(sf::Vector2f size) override;
 
-private:
-    sf::Text _text;
-};
+//     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-}
+// private:
+//     sf::Text _text;
+//     RoundedRect _background;
+// };
 
-#endif
+// }
+
+// #endif

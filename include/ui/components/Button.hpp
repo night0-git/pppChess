@@ -17,7 +17,6 @@ public:
 
     Button& setCallback(std::function<void()> callback);
 
-    Button& setSize(sf::Vector2f size);
     Button& setTextSize(unsigned int size);
     Button& setTextScale(float scale);
 
@@ -27,11 +26,13 @@ public:
     Button& setCornerRadius(float radius);
     Button& setDepthOffset(float offset);
 
-    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    void setPosition(sf::Vector2f pos) override;
-   
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) override;
+    void update(sf::Time dt) override;
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
+    sf::Vector2f getSize() const override;
+    void setSize(sf::Vector2f size) override;
+   
 private:
     sf::Color _topColor = sf::Color(38, 37, 34);    // Dark gray
     sf::Color _bottomColor = sf::Color(29, 28, 26);
