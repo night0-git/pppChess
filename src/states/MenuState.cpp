@@ -5,8 +5,7 @@
 #include "../../include/ui/components/Component.hpp"
 
 MenuState::MenuState(Context& context) : State(context),
-_menu({1000, 1000}, sf::Color::White) {
-    _menu.setSpacing(40);
+_menu({500, 150}, 20) {
     _menu.setPosition({200, 200});
     auto start = std::make_unique<ui::Button>(
         sf::Vector2f(0.f, 0.f), 
@@ -20,7 +19,7 @@ _menu({1000, 1000}, sf::Color::White) {
     _menu.addComponent(std::move(start));
     auto settings = std::make_unique<ui::Button>(
         sf::Vector2f(0.f, 0.f), 
-        sf::Vector2f(500.f, 150.f), 
+        sf::Vector2f(600.f, 150.f), 
         "Settings", 
         _font
     );
