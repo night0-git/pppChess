@@ -12,8 +12,7 @@ namespace ui {
 
 class Button : public Component {
 public:
-    Button(sf::Vector2f pos, sf::Vector2f size,
-        const std::string& text, const sf::Font& font);
+    Button(const std::string& text, const sf::Font& font);
 
     Button& setCallback(std::function<void()> callback);
 
@@ -37,7 +36,7 @@ private:
     sf::Color _topColor = sf::Color(38, 37, 34);    // Dark gray
     sf::Color _bottomColor = sf::Color(29, 28, 26);
     sf::Color _textColor = sf::Color::White;
-    float _depthOffset = 16.f;
+    float _depthOffset = 10.f;
 
     RoundedRect _body;
     RoundedRect _shadow;

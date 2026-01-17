@@ -7,22 +7,12 @@
 MenuState::MenuState(Context& context) : State(context),
 _menu({500, 150}, 20) {
     _menu.setPosition({200, 200});
-    auto start = std::make_unique<ui::Button>(
-        sf::Vector2f(0.f, 0.f), 
-        sf::Vector2f(500.f, 150.f), 
-        "Start game", 
-        _font
-    );
+    auto start = std::make_unique<ui::Button>("Start game", _font);
     start->setCallback([this]() {
         _context.states->pushState(std::make_unique<GameState>(_context), false);
     });
     _menu.addComponent(std::move(start));
-    auto settings = std::make_unique<ui::Button>(
-        sf::Vector2f(0.f, 0.f), 
-        sf::Vector2f(600.f, 150.f), 
-        "Settings", 
-        _font
-    );
+    auto settings = std::make_unique<ui::Button>("Settings", _font);
     settings->setCallback([this]() {
         _context.states->pushState(std::make_unique<SettingsState>(_context), false);
     });

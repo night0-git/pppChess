@@ -1,16 +1,16 @@
 #include "../../../include/ui/components/Button.hpp"
 using ui::Button;
 
-Button::Button(sf::Vector2f pos, sf::Vector2f size, const std::string& text, const sf::Font& font)
+Button::Button(const std::string& text, const sf::Font& font)
 : _text(font, text) {
-    _body.setSize(size - sf::Vector2f(0, _depthOffset));
+    _body.setSize({400, 100});
     _body.setFillColor(_topColor);
-    _body.setPosition(pos);
+    _body.setPosition({0, 0});
 
     _shadow.setOrigin({0, -_depthOffset});
     _shadow.setSize(_body.getSize());
     _shadow.setFillColor(_bottomColor);
-    _shadow.setPosition(pos);
+    _shadow.setPosition({0, 0});
 
     _text.setFillColor(_textColor);
     scaleAndCenterText();
