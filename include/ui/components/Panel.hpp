@@ -20,7 +20,7 @@ public:
     sf::Vector2f getUnitSize() const;
     float getSpacing() const;
 
-    void setSize(sf::Vector2f size) override;
+    void setSize(sf::Vector2f size) override = 0;
     virtual void setUnitSize(sf::Vector2f size) = 0;
     virtual void setSpacing(float spacing) = 0;
 
@@ -41,6 +41,7 @@ public:
 
     void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
 
+    void setSize(sf::Vector2f size) override;
     void setUnitSize(sf::Vector2f size) override;
     void setSpacing(float spacing) override;
 };
@@ -51,6 +52,7 @@ public:
 
     void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
     
+    void setSize(sf::Vector2f size) override;
     void setUnitSize(sf::Vector2f size) override;
     void setSpacing(float spacing) override;
 };

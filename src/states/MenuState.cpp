@@ -3,7 +3,7 @@
 #include "../../include/states/SettingsState.hpp"
 #include "../../include/core/StateManager.hpp"
 #include "../../include/ui/components/Component.hpp"
-
+#include <iostream>
 MenuState::MenuState(Context& context) : State(context),
 _menu({500, 150}, 30) {
     _menu.setPosition({200, 200});
@@ -16,8 +16,36 @@ _menu({500, 150}, 30) {
     settings->setCallback([this]() {
         _context.states->pushState(std::make_unique<SettingsState>(_context), false);
     });
-    _menu.addComponent(std::move(settings), false);
-    // _menu.setSize({_menu.getSize().x * 2, _menu.getSize().y * 2});
+    _menu.addComponent(std::move(settings));
+
+    // 1. Add a standard "Load Game" button
+    auto load = std::make_unique<ui::Button>(sf::Vector2f{500, 150}, 50, "Load Game", _font);
+    load->setCallback([]() { std::cout << "Load Game clicked" << std::endl; });
+    _menu.addComponent(std::move(load));
+
+    // 2. Create a Nested Horizontal Panel (e.g., Difficulty Selector)
+    // We set its unit size to smaller buttons ({150, 100})
+    auto difficultyPanel = std::make_unique<ui::HorizontalPanel>(sf::Vector2f{150, 100}, 10); 
+
+    // Add "Easy" button to horizontal panel
+    auto easy = std::make_unique<ui::Button>(sf::Vector2f{150, 100}, 50, "Easy", _font);
+    difficultyPanel->addComponent(std::move(easy));
+
+    // Add "Hard" button to horizontal panel
+    auto hard = std::make_unique<ui::Button>(sf::Vector2f{150, 100}, 50, "Hard", _font);
+    difficultyPanel->addComponent(std::move(hard));
+
+    // Add the horizontal panel to the main vertical menu.
+    // Important: passing 'true' for keepRatio so it calculates its own height 
+    // instead of being forced to the vertical panel's unit height (150).
+    _menu.addComponent(std::move(difficultyPanel), true); 
+
+    // 3. Add Exit Button
+    auto exit = std::make_unique<ui::Button>(sf::Vector2f{500, 150}, 50, "Exit", _font);
+    exit->setCallback([this]() { _context.window->close(); });
+    _menu.addComponent(std::move(exit));
+
+    std::cout << "Unit size: " << _menu.getUnitSize().x << ", " << _menu.getUnitSize().y << std::endl;
 }
 
 void MenuState::init() {

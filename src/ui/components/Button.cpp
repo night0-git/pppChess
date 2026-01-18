@@ -22,7 +22,7 @@ unsigned int Button::getTextSize() const {
 }
 
 sf::Vector2f Button::getSize() const {
-    return _body.getSize();
+    return _body.getSize() + sf::Vector2f(0, _depthOffset);
 }
 
 Button& Button::setCallback(std::function<void()> callback) {
