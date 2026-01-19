@@ -1,5 +1,5 @@
-#ifndef _PANEL_H_
-#define _PANEL_H_
+#ifndef _CONTAINER_HPP_
+#define _CONTAINER_HPP_
 
 #include "Component.hpp"
 #include "RoundedRect.hpp"
@@ -9,10 +9,10 @@
 
 namespace ui {
 
-class Panel : public Component {
+class Container : public Component {
 public:
-    Panel(sf::Vector2f unitSize, float spacing = 20.f);
-    virtual ~Panel() = default;
+    Container(sf::Vector2f unitSize, float spacing = 20.f);
+    virtual ~Container() = default;
 
     virtual void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) = 0;
     
@@ -35,9 +35,9 @@ protected:
     sf::Vector2f _cursor = sf::Vector2f(0, 0);
 };
 
-class VerticalPanel : public Panel {
+class VerticalContainer : public Container {
 public:
-    VerticalPanel(sf::Vector2f unitSize, float spacing = 20.f);
+    VerticalContainer(sf::Vector2f unitSize, float spacing = 20.f);
 
     void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
 
@@ -46,9 +46,9 @@ public:
     void setSpacing(float spacing) override;
 };
 
-class HorizontalPanel : public Panel {
+class HorizontalContainer : public Container {
 public:
-    HorizontalPanel(sf::Vector2f unitSize, float spacing = 20.f);
+    HorizontalContainer(sf::Vector2f unitSize, float spacing = 20.f);
 
     void addComponent(std::unique_ptr<Component> component, bool keepRatio = false) override;
     

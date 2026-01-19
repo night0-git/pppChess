@@ -1,24 +1,24 @@
-#include "../../../include/ui/components/Panel.hpp"
-using ui::Panel;
-using ui::VerticalPanel;
-using ui::HorizontalPanel;
+#include "../../../include/ui/components/Container.hpp"
+using ui::Container;
+using ui::VerticalContainer;
+using ui::HorizontalContainer;
 
-Panel::Panel(sf::Vector2f unitSize, float spacing)
+Container::Container(sf::Vector2f unitSize, float spacing)
 : _unitSize(unitSize), _size(unitSize), _spacing(spacing) {}
 
-sf::Vector2f Panel::getSize() const {
+sf::Vector2f Container::getSize() const {
     return _size;
 }
 
-sf::Vector2f Panel::getUnitSize() const {
+sf::Vector2f Container::getUnitSize() const {
     return _unitSize;
 }
 
-float Panel::getSpacing() const {
+float Container::getSpacing() const {
     return _spacing;
 }
 
-void Panel::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
+void Container::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
     sf::Vector2f newMousePos = mouseWorldPos;
     
     if (event.is<sf::Event::MouseButtonPressed>() ||
@@ -32,7 +32,7 @@ void Panel::handleEvent(const sf::Event& event, const sf::RenderWindow& window, 
     }
 }
 
-void Panel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void Container::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     for (const auto& component : _components) {
@@ -40,10 +40,10 @@ void Panel::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     }
 }
 
-VerticalPanel::VerticalPanel(sf::Vector2f unitSize, float spacing)
-: Panel(unitSize, spacing) {}
+VerticalContainer::VerticalContainer(sf::Vector2f unitSize, float spacing)
+: Container(unitSize, spacing) {}
 
-void VerticalPanel::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
+void VerticalContainer::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
     sf::Vector2f oldSize = component->getSize();
     if (keepRatio) {
         float scale = _unitSize.x / oldSize.x;
@@ -59,7 +59,7 @@ void VerticalPanel::addComponent(std::unique_ptr<Component> component, bool keep
     _components.push_back(std::move(component));
 }
 
-void VerticalPanel::setSize(sf::Vector2f size) {
+void VerticalContainer::setSize(sf::Vector2f size) {
     if (_size.x == 0 || _size.y == 0) return;
 
     float scaleX = size.x / _size.x;
@@ -80,7 +80,7 @@ void VerticalPanel::setSize(sf::Vector2f size) {
     _size = size;
 }
 
-void VerticalPanel::setUnitSize(sf::Vector2f size) {
+void VerticalContainer::setUnitSize(sf::Vector2f size) {
     if (size == _unitSize) return;
 
     _cursor = {0, 0};
@@ -100,7 +100,7 @@ void VerticalPanel::setUnitSize(sf::Vector2f size) {
     _size = {size.x, height};
 }
 
-void VerticalPanel::setSpacing(float spacing) {
+void VerticalContainer::setSpacing(float spacing) {
     if (spacing == _spacing) return;
 
     _cursor = {0, 0};
@@ -112,10 +112,10 @@ void VerticalPanel::setSpacing(float spacing) {
     _size.y = _cursor.y - _spacing;
 }
 
-HorizontalPanel::HorizontalPanel(sf::Vector2f unitSize, float spacing)
-: Panel(unitSize, spacing) {}
+HorizontalContainer::HorizontalContainer(sf::Vector2f unitSize, float spacing)
+: Container(unitSize, spacing) {}
 
-void HorizontalPanel::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
+void HorizontalContainer::addComponent(std::unique_ptr<Component> component, bool keepRatio) {
     sf::Vector2f oldSize = component->getSize();
     if (keepRatio) {
         float scale = _unitSize.y / oldSize.y;
@@ -132,7 +132,7 @@ void HorizontalPanel::addComponent(std::unique_ptr<Component> component, bool ke
     _components.push_back(std::move(component));
 }
 
-void HorizontalPanel::setSize(sf::Vector2f size) {
+void HorizontalContainer::setSize(sf::Vector2f size) {
     if (_size.x == 0 || _size.y == 0) return;
 
     float scaleX = size.x / _size.x;
@@ -153,7 +153,7 @@ void HorizontalPanel::setSize(sf::Vector2f size) {
     _size = size;
 }
 
-void HorizontalPanel::setUnitSize(sf::Vector2f size) {
+void HorizontalContainer::setUnitSize(sf::Vector2f size) {
     if (size == _unitSize) return;
 
     _cursor = {0, 0};
@@ -173,7 +173,7 @@ void HorizontalPanel::setUnitSize(sf::Vector2f size) {
     _size = {width, size.y};
 }
 
-void HorizontalPanel::setSpacing(float spacing) {
+void HorizontalContainer::setSpacing(float spacing) {
     if (spacing == _spacing) return;
 
     _cursor = {0, 0};

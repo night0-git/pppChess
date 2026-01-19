@@ -5,7 +5,7 @@
 #include "../../include/ui/components/Component.hpp"
 #include <iostream>
 MenuState::MenuState(Context& context) : State(context),
-_menu({500, 150}, 30) {
+_menu({500, 150}, 20) {
     _menu.setPosition({200, 200});
     auto start = std::make_unique<ui::Button>(sf::Vector2f{500, 150}, 50, "Start game", _font);
     start->setCallback([this]() {
@@ -23,22 +23,23 @@ _menu({500, 150}, 30) {
     load->setCallback([]() { std::cout << "Load Game clicked" << std::endl; });
     _menu.addComponent(std::move(load));
 
-    // 2. Create a Nested Horizontal Panel (e.g., Difficulty Selector)
+    // 2. Create a Nested Horizontal Container (e.g., Difficulty Selector)
     // We set its unit size to smaller buttons ({150, 100})
-    auto difficultyPanel = std::make_unique<ui::HorizontalPanel>(sf::Vector2f{150, 100}, 10); 
+    auto difficultyContainer = std::make_unique<ui::HorizontalContainer>(sf::Vector2f{250, 300}, 10); 
+    difficultyContainer->setSpacing(20);
 
     // Add "Easy" button to horizontal panel
     auto easy = std::make_unique<ui::Button>(sf::Vector2f{150, 100}, 50, "Easy", _font);
-    difficultyPanel->addComponent(std::move(easy));
+    difficultyContainer->addComponent(std::move(easy));
 
     // Add "Hard" button to horizontal panel
     auto hard = std::make_unique<ui::Button>(sf::Vector2f{150, 100}, 50, "Hard", _font);
-    difficultyPanel->addComponent(std::move(hard));
+    difficultyContainer->addComponent(std::move(hard));
 
     // Add the horizontal panel to the main vertical menu.
     // Important: passing 'true' for keepRatio so it calculates its own height 
     // instead of being forced to the vertical panel's unit height (150).
-    _menu.addComponent(std::move(difficultyPanel), true); 
+    _menu.addComponent(std::move(difficultyContainer), true); 
 
     // 3. Add Exit Button
     auto exit = std::make_unique<ui::Button>(sf::Vector2f{500, 150}, 50, "Exit", _font);

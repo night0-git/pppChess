@@ -3,7 +3,7 @@
 
 #include "State.hpp"
 #include "../ui/components/Button.hpp"
-#include "../ui/components/Panel.hpp"
+#include "../ui/components/Container.hpp"
 
 class MenuState : public State {
 public:
@@ -20,7 +20,7 @@ public:
 
 private:
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
-    ui::VerticalPanel _menu;
+    ui::VerticalContainer _menu;
 };
 
 #endif
