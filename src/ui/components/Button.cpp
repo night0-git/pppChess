@@ -56,8 +56,8 @@ Button& Button::setTextColor(sf::Color color) {
 }
 
 Button& Button::setCornerRadius(float radius) {
-    _body.setRadius(radius);
-    _shadow.setRadius(radius);
+    _body.setCornerRadius(radius);
+    _shadow.setCornerRadius(radius);
     return *this;
 }
 
