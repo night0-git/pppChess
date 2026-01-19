@@ -2,7 +2,7 @@
 #define _MENU_STATE_H_
 
 #include "State.hpp"
-#include "../ui/components/Button.hpp"
+#include "../ui/components/Container.hpp"
 
 class MenuState : public State {
 public:
@@ -18,8 +18,9 @@ public:
     void resume() override;
 
 private:
+    sf::Texture _banner = sf::Texture("./assets/test chess banner.jpg");
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
-    ui::Button _button;
+    ui::VerticalContainer _menu;
 };
 
 #endif

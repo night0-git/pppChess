@@ -18,9 +18,10 @@ void RoundedRect::setSize(sf::Vector2f size) {
     update();
 }
 
-void RoundedRect::setRadius(float radius) {
+void RoundedRect::setCornerRadius(float radius, unsigned int cornerPoints) {
     float maxRadius = std::min(_size.x, _size.y) / 2.f;
     _radius = std::clamp(radius, 0.f, maxRadius);
+    _cornerPoints = cornerPoints;
     update();
 }
 

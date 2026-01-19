@@ -9,7 +9,7 @@ public:
 
     sf::Vector2f getSize() const;
     void setSize(sf::Vector2f size);
-    void setRadius(float radius);
+    void setCornerRadius(float radius, unsigned int cornerPoints = 15);
 
     std::size_t getPointCount() const override;
     sf::Vector2f getPoint(std::size_t index) const override;

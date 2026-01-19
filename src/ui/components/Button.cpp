@@ -1,52 +1,32 @@
 #include "../../../include/ui/components/Button.hpp"
 using ui::Button;
 
-Button::Button(sf::Vector2f pos, sf::Vector2f size, const std::string& text, const sf::Font& font)
-: _text(font, text) {
-    _body.setSize(size - sf::Vector2f(0, _depthOffset));
+Button::Button(sf::Vector2f size, unsigned int textSize,
+const std::string& text, const sf::Font& font) : _text(font, text) {
+    _body.setSize(size);
     _body.setFillColor(_topColor);
-    _body.setPosition(pos);
+    _body.setPosition({0, 0});
 
     _shadow.setOrigin({0, -_depthOffset});
     _shadow.setSize(_body.getSize());
     _shadow.setFillColor(_bottomColor);
-    _shadow.setPosition(pos);
+    _shadow.setPosition({0, 0});
 
     _text.setFillColor(_textColor);
-    scaleAndCenterText();
+    _text.setCharacterSize(textSize);
+    centerText();
 }
 
-void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
-    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos);
-    sf::FloatRect bounds = getTransform().transformRect(_body.getGlobalBounds());
-    bool isHovered = bounds.contains(worldPos);
+unsigned int Button::getTextSize() const {
+    return _text.getCharacterSize();
+}
 
-    if (event.is<sf::Event::MouseButtonPressed>() && isHovered) {
-        _body.move({0, _depthOffset / 2});
-        _text.move({0, _depthOffset / 2});
-        _isPressed = true;
-    }
-
-    if (event.is<sf::Event::MouseButtonReleased>() && _isPressed) {
-        _body.move({0, -_depthOffset / 2});
-        _text.move({0, -_depthOffset / 2});
-        _isPressed = false;
-        if (isHovered && _callback) {
-            _callback();
-        }
-    }
+sf::Vector2f Button::getSize() const {
+    return _body.getSize() + sf::Vector2f(0, _depthOffset);
 }
 
 Button& Button::setCallback(std::function<void()> callback) {
     _callback = std::move(callback);
-    return *this;
-}
-
-Button& Button::setSize(sf::Vector2f size) {
-    _body.setSize(size - sf::Vector2f(0, _depthOffset));
-    _shadow.setSize(_body.getSize());
-    scaleAndCenterText();
     return *this;
 }
 
@@ -76,8 +56,8 @@ Button& Button::setTextColor(sf::Color color) {
 }
 
 Button& Button::setCornerRadius(float radius) {
-    _body.setRadius(radius);
-    _shadow.setRadius(radius);
+    _body.setCornerRadius(radius);
+    _shadow.setCornerRadius(radius);
     return *this;
 }
 
@@ -91,13 +71,37 @@ Button& Button::setDepthOffset(float offset) {
     return *this;
 }
 
-void Button::setPosition(sf::Vector2f pos) {
-    _body.setPosition(pos);
-    _shadow.setPosition(pos);
-    _text.setPosition(_body.getGlobalBounds().getCenter());
+void Button::setSize(sf::Vector2f size) {
+    _body.setSize(size - sf::Vector2f(0, _depthOffset));
+    _shadow.setSize(_body.getSize());
+    centerText();
 }
 
-void ui::Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
+void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
+    sf::FloatRect bounds = getTransform().transformRect(_body.getGlobalBounds());
+    bool isHovered = bounds.contains(mouseWorldPos);
+
+    if (event.is<sf::Event::MouseButtonPressed>() && isHovered) {
+        _body.move({0, _depthOffset / 2});
+        _text.move({0, _depthOffset / 2});
+        _isPressed = true;
+    }
+
+    if (event.is<sf::Event::MouseButtonReleased>() && _isPressed) {
+        _body.move({0, -_depthOffset / 2});
+        _text.move({0, -_depthOffset / 2});
+        _isPressed = false;
+        if (isHovered && _callback) {
+            _callback();
+        }
+    }
+}
+
+void Button::update(sf::Time dt) {
+    
+}
+
+void Button::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     target.draw(_shadow, states);
