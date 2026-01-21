@@ -2,8 +2,10 @@
 #define _BOARD_VIEW_H_
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "../core/Resource.hpp"
 #include "../core/ResourceManager.hpp"
+#include "../core/SoundPlayer.hpp"
 #include "../../game_logic/Board.hpp"
 #include "../../../include/ui/views/PieceView.hpp"
 #include "../../../include/core/BoardObserver.hpp"
@@ -12,9 +14,15 @@
 
 namespace ui {
 
+struct BoardTheme {
+    float tileSize = 150.f;
+    sf::Color lightColor = sf::Color(240, 217, 181);
+    sf::Color darkColor  = sf::Color(181, 136, 99);
+};
+
 class BoardView : public sf::Drawable, public sf::Transformable, public BoardObserver {
 public:
-    BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board);
+    BoardView(const ResourceManager<TextureId, sf::Texture>& textures, SoundPlayer& sounds, const Board& board);
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void update(sf::Time dt);
@@ -35,15 +43,16 @@ private:
     std::map<const Piece*, PieceView> _pieceViews;
 
     const ResourceManager<TextureId, sf::Texture>& _textures;
-    const float _tileSize = 150.f;
-    const sf::Color _lightColor = sf::Color(240, 217, 181);
-    const sf::Color _darkColor  = sf::Color(181, 136, 99);
+    SoundPlayer& _sounds;
+    
+    BoardTheme _theme;
 
     // For event handling
     bool _isMoving = false;
     const Piece* _draggedPiece = nullptr;
     std::optional<sf::Vector2i> _selectedSqr = std::nullopt;
     bool _isDeselecting = false;
+    
     sf::Vector2i localPosToSqr(const sf::Vector2f& localPos) const;
 };
 

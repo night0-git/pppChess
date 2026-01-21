@@ -15,7 +15,13 @@ enum class TextureId {
     Error
 };
 
-inline TextureId getTextureId(const Piece& piece) {
+enum class SoundId {
+    GameStart, GameEnd,
+    Move, Capture, Check, Illegal, Castle, Promote,
+    TenSeconds
+};
+
+inline TextureId getPieceId(const Piece& piece) {
     static map<pair<PieceType, PieceColor>, TextureId> textureMap = {
         {{PieceType::Pawn, PieceColor::White}, TextureId::WPawn},
         {{PieceType::Pawn, PieceColor::Black}, TextureId::BPawn},
@@ -28,7 +34,7 @@ inline TextureId getTextureId(const Piece& piece) {
         {{PieceType::Queen, PieceColor::White}, TextureId::WQueen},
         {{PieceType::Queen, PieceColor::Black}, TextureId::BQueen},
         {{PieceType::King, PieceColor::White}, TextureId::WKing},
-        {{PieceType::King, PieceColor::Black}, TextureId::BKing}
+        {{PieceType::King, PieceColor::Black}, TextureId::BKing},
     };
 
     auto it = textureMap.find({piece.type(), piece.color()});

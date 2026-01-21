@@ -5,7 +5,9 @@
 #include "StateManager.hpp"
 #include "../ui/core/Resource.hpp"
 #include "../ui/core/ResourceManager.hpp"
+#include "../ui/core/SoundPlayer.hpp"
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 
 class App {
@@ -22,6 +24,8 @@ private:
     sf::RenderWindow _window;
     StateManager _states;
     ui::ResourceManager<ui::TextureId, sf::Texture> _textures;
+    ui::ResourceManager<ui::SoundId, sf::SoundBuffer> _sounds;
+    ui::SoundPlayer _soundPlayer;
     sf::Clock _clock;
 
     Context _context;

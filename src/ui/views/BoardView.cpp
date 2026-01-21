@@ -3,14 +3,14 @@
 #include <cmath>
 using ui::BoardView;
 
-BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, const Board& board)
-: _textures(textures), _board(board) {}
+BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, SoundPlayer& sounds, const Board& board)
+: _textures(textures), _sounds(sounds), _board(board) {}
 
 void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
     sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
     sf::Vector2f localPos = getTransform().getInverse().transformPoint(worldPos);
-    auto dragOffset = sf::Vector2f(-_tileSize / 2.f, -_tileSize / 2.f);
+    auto dragOffset = sf::Vector2f(-_theme.tileSize / 2.f, -_theme.tileSize / 2.f);
 
     if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
         sf::Vector2i sqr = localPosToSqr(localPos);
@@ -83,15 +83,16 @@ void BoardView::onBoardInit() {
         for (int y = 0; y < Board::SIZE; y++) {
             auto pcs = _board.getPieceAt({x, y});
             if (pcs) {
-                const sf::Texture& texture = _textures.get(ui::getTextureId(*pcs));
+                const sf::Texture& texture = _textures.get(ui::getPieceId(*pcs));
                 // Use piecewise_construct for multi-argument constructors in maps
                 _pieceViews.emplace(std::piecewise_construct,
                                     std::forward_as_tuple(pcs),
-                                    std::forward_as_tuple(texture, _tileSize, *pcs));
+                                    std::forward_as_tuple(texture, _theme.tileSize, *pcs));
                 _pieceViews.at(pcs).snapToPosition({x, y});
             }
         }
     }
+    _sounds.play(ui::SoundId::GameStart);
 }
 
 void BoardView::onPieceMoved(Move move) {
@@ -102,10 +103,12 @@ void BoardView::onPieceMoved(Move move) {
     } else {        
         _pieceViews.at(pcs).snapToPosition(move.dest);
     }
+    _sounds.play(ui::SoundId::Move);
 }
 
 void BoardView::onPieceCaptured(const Piece* piece) {
     _pieceViews.erase(piece);
+    _sounds.play(ui::SoundId::Capture);
 }
 
 void BoardView::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
@@ -121,24 +124,25 @@ void BoardView::onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPc
     // Add new PieceView
     auto pcs = _board.getPieceAt(sqr);
     if (pcs) {
-        const sf::Texture& texture = _textures.get(ui::getTextureId(*pcs));
-        _pieceViews.insert_or_assign(pcs, PieceView(texture, _tileSize, *pcs));
+        const sf::Texture& texture = _textures.get(ui::getPieceId(*pcs));
+        _pieceViews.insert_or_assign(pcs, PieceView(texture, _theme.tileSize, *pcs));
         auto it = _pieceViews.find(pcs);
         if (it != _pieceViews.end()) {
             it->second.snapToPosition(sqr);
         }
     }
+    _sounds.play(ui::SoundId::Promote);
 }
 
 void BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     states.transform *= getTransform();
 
     // Draw grid;
-    sf::RectangleShape square({_tileSize, _tileSize});
+    sf::RectangleShape square({_theme.tileSize, _theme.tileSize});
     for (int col = 0; col < Board::SIZE; col++) {
         for (int row = 0; row < Board::SIZE; row++) {
-            square.setPosition({col * _tileSize, row * _tileSize});
-            square.setFillColor((col + row) % 2 == 0 ? _lightColor : _darkColor);
+            square.setPosition({col * _theme.tileSize, row * _theme.tileSize});
+            square.setFillColor((col + row) % 2 == 0 ? _theme.lightColor : _theme.darkColor);
             target.draw(square, states);
             if (_selectedSqr == sf::Vector2i(row, col)) {
                 // Draw an overlay for selected square
@@ -163,7 +167,7 @@ void BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 }
 
 sf::Vector2i BoardView::localPosToSqr(const sf::Vector2f& localPos) const {
-    int col = static_cast<int>(std::floor(localPos.x / _tileSize));
-    int row = static_cast<int>(std::floor(localPos.y / _tileSize));
+    int col = static_cast<int>(std::floor(localPos.x / _theme.tileSize));
+    int row = static_cast<int>(std::floor(localPos.y / _theme.tileSize));
     return sf::Vector2i(row, col);
 }
