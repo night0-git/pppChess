@@ -95,20 +95,43 @@ void BoardView::onBoardInit() {
     _sounds.play(ui::SoundId::GameStart);
 }
 
-void BoardView::onPieceMoved(Move move) {
-    auto pcs = _board.getPieceAt(move.dest);
-    if (_isMoving) {
-        _pieceViews.at(pcs).animateToPosition(move.dest);
-        _isMoving = false;
-    } else {        
-        _pieceViews.at(pcs).snapToPosition(move.dest);
-    }
-    _sounds.play(ui::SoundId::Move);
-}
+void BoardView::onMoveEvent(const MoveResult& result) {
+    if (!result.success) return;
 
-void BoardView::onPieceCaptured(const Piece* piece) {
-    _pieceViews.erase(piece);
-    _sounds.play(ui::SoundId::Capture);
+    // Delete old pieceview
+    if (result.captured) {
+        _pieceViews.erase(result.captured.get());
+    }
+    // Move pieceview
+    if (result.rookMove) {
+        movePieceView(*result.rookMove);
+    }
+    movePieceView(result.move);
+    // Add new pieceview
+    if (result.promotedPawn && result.promoteType) {
+        _pieceViews.erase(result.promotedPawn.get());
+        auto pcs = _board.getPieceAt(result.move.dest);
+        if (pcs) {
+            const sf::Texture& texture = _textures.get(ui::getPieceId(*pcs));
+            PieceView pcsView(texture, _theme.tileSize, *pcs);
+            pcsView.snapToPosition(result.move.dest);
+            _pieceViews.insert_or_assign(pcs, pcsView);
+        }
+    }
+
+    // Play sound
+    if (result.isCheck) {
+        _sounds.play(ui::SoundId::Check);
+        return;
+    }
+    if (result.special == SpecialMove::None || result.special == SpecialMove::EnPassant) {
+        ui::SoundId sound = result.captured ? ui::SoundId::Capture : ui::SoundId::Move;
+        _sounds.play(sound);
+    } else if (result.special == SpecialMove::Castle) {
+        _sounds.play(ui::SoundId::Castle);
+    } else if (result.special == SpecialMove::Promote) {
+        _sounds.play(ui::SoundId::Promote);
+    }
 }
 
 void BoardView::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
@@ -116,22 +139,15 @@ void BoardView::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
     type = PieceType::Queen;
 }
 
-
-void BoardView::onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPcs) {
-    // Delete the old piece texture
-    _pieceViews.erase(oldPcs);
-
-    // Add new PieceView
-    auto pcs = _board.getPieceAt(sqr);
-    if (pcs) {
-        const sf::Texture& texture = _textures.get(ui::getPieceId(*pcs));
-        _pieceViews.insert_or_assign(pcs, PieceView(texture, _theme.tileSize, *pcs));
-        auto it = _pieceViews.find(pcs);
-        if (it != _pieceViews.end()) {
-            it->second.snapToPosition(sqr);
+void BoardView::movePieceView(Move move) {
+    if (auto pcs = _board.getPieceAt(move.dest)) {
+        if (_isMoving) {
+            _pieceViews.at(pcs).animateToPosition(move.dest);
+            _isMoving = false;
+        } else {        
+            _pieceViews.at(pcs).snapToPosition(move.dest);
         }
     }
-    _sounds.play(ui::SoundId::Promote);
 }
 
 void BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {

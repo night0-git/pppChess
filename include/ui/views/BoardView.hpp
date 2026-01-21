@@ -30,12 +30,11 @@ public:
 
 public:
     void onBoardInit() override;
-    void onPieceMoved(Move move) override;
-    void onPieceCaptured(const Piece* piece) override;
+    void onMoveEvent(const MoveResult& result) override;
     void onPromoteSelection(sf::Vector2i sqr, PieceType& type) override;
-    void onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPcs) override;
 
-protected:
+public:
+    void movePieceView(Move move);
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:

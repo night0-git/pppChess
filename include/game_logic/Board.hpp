@@ -7,6 +7,7 @@
 #include <array>
 #include <optional>
 #include <vector>
+#include <utility>
 
 struct Move {
     sf::Vector2i src;
@@ -17,19 +18,19 @@ struct Move {
     }
 };
 
-struct MoveResult {
-    bool success;
-    std::unique_ptr<Piece> captured;
-    MoveResult(bool s, std::unique_ptr<Piece> c = nullptr) : success(s), captured(std::move(c)) {};
-};
-
 enum class MoveType { Move, Capture, Invalid };
 enum class SpecialMove { Castle, Promote, EnPassant, None };
 
-struct MoveInfo {
-    MoveType type = MoveType::Invalid;
-    SpecialMove special = SpecialMove::None;
-    MoveInfo(MoveType t, SpecialMove s) : type(t), special(s) {};
+struct MoveResult {
+    bool success;
+    Move move;
+    std::unique_ptr<Piece> captured = nullptr;
+    SpecialMove special;
+    std::unique_ptr<Piece> promotedPawn = nullptr;
+    std::optional<PieceType> promoteType = std::nullopt;
+    std::optional<Move> rookMove = std::nullopt;
+    bool isCheck = false;
+    MoveResult(bool s, Move m, SpecialMove sp) : success(s), move(m), special(sp) {};
 };
 
 class Board {
@@ -58,13 +59,11 @@ public:
     void addObserver(std::shared_ptr<BoardObserver> observer);
     
 private:
-    MoveInfo getMoveInfo(Move move);
+    std::pair<MoveType, SpecialMove> getMoveInfo(Move move);
 
     // Notifiers
-    void pieceMoved(Move move);
-    void pieceCaptured(const Piece* piece);
-    void selectPromoteType(sf::Vector2i sqr, PieceType& type);
-    void piecePromoted(sf::Vector2i sqr, PieceType type, const Piece* oldPiece);
+    void onMoveEvent(const MoveResult& result);
+    void onPromoteSelection(sf::Vector2i sqr, PieceType& type);
 
 private:
     std::array<std::array<std::unique_ptr<Piece>, SIZE>, SIZE> _grid;

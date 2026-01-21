@@ -5,15 +5,14 @@
 #include "../game_logic/Piece.hpp"
 
 struct Move;
+struct MoveResult;
 
 class BoardObserver {
 public:
     virtual ~BoardObserver() = default;
     virtual void onBoardInit() = 0;
-    virtual void onPieceMoved(Move move) = 0;
-    virtual void onPieceCaptured(const Piece* piece) = 0;
+    virtual void onMoveEvent(const MoveResult& result) = 0;
     virtual void onPromoteSelection(sf::Vector2i sqr, PieceType& type) = 0;
-    virtual void onPromotion(sf::Vector2i sqr, PieceType type, const Piece* oldPcs) = 0;
 };
 
 #endif

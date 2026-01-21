@@ -6,13 +6,15 @@ Board::Board() {
 }
 
 MoveResult Board::movePiece(Move move) {
-    MoveInfo info = getMoveInfo(move);
+    auto [type, special] = getMoveInfo(move);
+    MoveResult moveResult(true, move, special);
 
-    if (info.type == MoveType::Invalid) {
-        return MoveResult(false);
+    if (type == MoveType::Invalid) {
+        moveResult.success = false;
+        return moveResult;
     }
 
-    if (info.special != SpecialMove::EnPassant) {
+    if (special != SpecialMove::EnPassant) {
         _enPassantTarget.reset();
     }
 
@@ -33,10 +35,9 @@ MoveResult Board::movePiece(Move move) {
     }
     sourcePcs->setMoved();
     _grid[dest.x][dest.y] = std::move(sourcePcs);
-    pieceMoved(move);
     
-    if (info.special == SpecialMove::EnPassant) {
-        if (info.type == MoveType::Move) {
+    if (special == SpecialMove::EnPassant) {
+        if (type == MoveType::Move) {
             int forward = (sourcePtr->color() == PieceColor::Black ? 1 : -1);
             _enPassantTarget = src + sf::Vector2i{forward, 0};
         }
@@ -46,13 +47,12 @@ MoveResult Board::movePiece(Move move) {
             sf::Vector2i victimPos = {src.x, dest.y};
             auto victimPawn = takePieceAt(victimPos);
             if (victimPawn) {
-                pieceCaptured(victimPawn.get());
-                return MoveResult(true, std::move(victimPawn));
+                moveResult.captured = std::move(victimPawn);
             }
         }
     }
 
-    else if (info.special == SpecialMove::Castle) {
+    else if (special == SpecialMove::Castle) {
         sf::Vector2i rookSrc, rookDest;
         if (dest.y > src.y) { // Kingside castling
             rookSrc = {src.x, SIZE - 1};
@@ -65,23 +65,24 @@ MoveResult Board::movePiece(Move move) {
         if (rook) {
             rook->setMoved();
             _grid[rookDest.x][rookDest.y] = std::move(rook);
-            pieceMoved({rookSrc, rookDest});
+            moveResult.rookMove = Move(rookSrc, rookDest);
         }
     }
 
-    else if (info.special == SpecialMove::Promote) {
+    else if (special == SpecialMove::Promote) {
         PieceType promoteType;
-        selectPromoteType(dest, promoteType);
-        auto oldPawn = promote(dest, promoteType);
-        piecePromoted(dest, promoteType, oldPawn.get());
+        onPromoteSelection(dest, promoteType);
+        moveResult.promotedPawn = promote(dest, promoteType);
     }
 
-    if (info.type == MoveType::Capture && destPcs) {
-        pieceCaptured(destPcs.get());
-        return MoveResult(true, std::move(destPcs));
+    if (type == MoveType::Capture && destPcs) {
+        moveResult.captured = std::move(destPcs);
     }
 
-    return MoveResult(true);
+    // Notify observers
+    onMoveEvent(moveResult);
+
+    return moveResult;
 }
 
 std::unique_ptr<Piece> Board::promote(sf::Vector2i sqr, PieceType type) {
@@ -120,7 +121,7 @@ bool Board::isValidMove(PieceColor srcColor, sf::Vector2i dest) const {
     return (!destPtr || srcColor != destPtr->color());
 }
 
-MoveInfo Board::getMoveInfo(Move move) {
+std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) {
     auto type = MoveType::Invalid;
     auto special = SpecialMove::None;
     auto src = move.src;
@@ -130,21 +131,21 @@ MoveInfo Board::getMoveInfo(Move move) {
     auto destPtr = getPieceAt(dest);
 
     if (!isWithinBoard(src) || !isWithinBoard(dest) || !isValidMove(sourcePtr->color(), dest)) {
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     if (!sourcePtr) {
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
     if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     if (!isMoveSafe(move)) {
         type = MoveType::Invalid;
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     type = (destPtr ? MoveType::Capture : MoveType::Move);
@@ -152,7 +153,7 @@ MoveInfo Board::getMoveInfo(Move move) {
     bool isCastling = (sourcePtr->type() == PieceType::King && std::abs(src.y - dest.y) == 2);
     if (isCastling) {
         special = SpecialMove::Castle;
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     bool isEnPassantTarget = (sourcePtr->type() == PieceType::Pawn && std::abs(src.x - dest.x) == 2)
@@ -160,18 +161,18 @@ MoveInfo Board::getMoveInfo(Move move) {
     if (isEnPassantTarget) {
         type = (src.y == dest.y ? MoveType::Move : MoveType::Capture);
         special = SpecialMove::EnPassant;
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     bool isPromoting = (sourcePtr->type() == PieceType::Pawn
                         && (dest.x == 0 || dest.x == SIZE - 1));
     if (isPromoting) {
         special = SpecialMove::Promote;
-        return MoveInfo(type, special);
+        return {type, special};
     }
 
     special = SpecialMove::None;
-    return MoveInfo(type, special);
+    return {type, special};
 }
 
 
@@ -389,10 +390,10 @@ void Board::boardInit() {
     }
 }
 
-void Board::pieceMoved(Move move) {
+void Board::onMoveEvent(const MoveResult& result) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
-            observer->onPieceMoved(move);
+            observer->onMoveEvent(result);
             it++;
         }
         else {
@@ -401,34 +402,10 @@ void Board::pieceMoved(Move move) {
     }
 }
 
-void Board::pieceCaptured(const Piece* piece) {
-    for (auto it = _observers.begin(); it != _observers.end(); ) {
-        if (auto observer = it->lock()) {
-            observer->onPieceCaptured(piece);
-            it++;
-        }
-        else {
-            it = _observers.erase(it);
-        }
-    }
-}
-
-void Board::selectPromoteType(sf::Vector2i sqr, PieceType& type) {
+void Board::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
     for (auto it = _observers.begin(); it != _observers.end(); ) {
         if (auto observer = it->lock()) {
             observer->onPromoteSelection(sqr, type);
-            it++;
-        }
-        else {
-            it = _observers.erase(it);
-        }
-    }
-}
-
-void Board::piecePromoted(sf::Vector2i sqr, PieceType type, const Piece* oldPiece) {
-    for (auto it = _observers.begin(); it != _observers.end(); ) {
-        if (auto observer = it->lock()) {
-            observer->onPromotion(sqr, type, oldPiece);
             it++;
         }
         else {
