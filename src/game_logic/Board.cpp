@@ -79,6 +79,10 @@ MoveResult Board::movePiece(Move move) {
         moveResult.captured = std::move(destPcs);
     }
 
+    if (isChecked(!sourcePtr->color())) {
+        moveResult.isCheck = true;
+    }
+
     // Notify observers
     onMoveEvent(moveResult);
 
