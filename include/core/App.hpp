@@ -3,12 +3,18 @@
 
 #include "Context.hpp"
 #include "StateManager.hpp"
+#include "LayoutManager.hpp"
 #include "../ui/core/Resource.hpp"
 #include "../ui/core/ResourceManager.hpp"
 #include "../ui/core/SoundPlayer.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
+
+struct Settings {
+    float masterVolume = 100.f;
+    float uiScale = 1.f;
+};
 
 class App {
 public:
@@ -23,10 +29,12 @@ private:
 private:
     sf::RenderWindow _window;
     StateManager _states;
+    LayoutManager _layoutManager;
     ui::ResourceManager<ui::TextureId, sf::Texture> _textures;
     ui::ResourceManager<ui::SoundId, sf::SoundBuffer> _sounds;
     ui::SoundPlayer _soundPlayer;
     sf::Clock _clock;
+    Settings _settings;
 
     Context _context;
 };

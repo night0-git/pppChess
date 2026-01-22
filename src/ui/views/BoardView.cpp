@@ -77,6 +77,17 @@ void BoardView::update(sf::Time dt) {
     }
 }
 
+sf::Vector2f BoardView::getSize() const {
+    return sf::Vector2f(_theme.tileSize * Board::SIZE, _theme.tileSize * Board::SIZE);
+}
+
+void BoardView::setSize(float size) {
+    _theme.tileSize = size / Board::SIZE;
+    for (auto& [piece, view] : _pieceViews) {
+        view.normalizeSprite();
+    }
+}
+
 void BoardView::onBoardInit() {
     _pieceViews.clear();
     for (int x = 0; x < Board::SIZE; x++) {

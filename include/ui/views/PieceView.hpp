@@ -17,11 +17,11 @@ public:
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
     void update(sf::Time dt);
+    void normalizeSprite();
 
 private:
     sf::Vector2f sqrToPos(sf::Vector2i sqr) const;
 
-    void normalizeSprite();
     const Piece* _piece;
     sf::Sprite _sprite;
     float _tileSize;

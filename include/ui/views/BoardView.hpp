@@ -27,6 +27,8 @@ public:
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void update(sf::Time dt);
     std::function<bool(Move move)> _onMoveRequest;
+    sf::Vector2f getSize() const;
+    void setSize(float size);
 
 public:
     void onBoardInit() override;

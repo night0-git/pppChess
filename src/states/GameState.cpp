@@ -2,10 +2,14 @@
 #include "../../include/states/MenuState.hpp"
 #include "../../include/states/SettingsState.hpp"
 #include "../../include/core/StateManager.hpp"
+#include "../../include/core/LayoutManager.hpp"
 #include <iostream>
 
 GameState::GameState(Context& context) : State(context),
-_boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game.board())) {}
+_boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game.board())) {
+    _boardView->setSize(_context.window->getSize().y * 0.85f);
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+}
 
 void GameState::init() {
     _game.addBoardObserver(_boardView);
@@ -57,9 +61,15 @@ void GameState::handleEvent(const sf::Event& event) {
         _boardView->handleEvent(event, *(_context.window));
     }
 
+    if (event.is<sf::Event::Resized>()) {
+        sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
+        _context.window->setView(sf::View(visibleArea));
+        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+    }
+
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
         if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-            _context.states->pushState(std::make_unique<SettingsState>(_context), false);
+            _context.states->pushState(std::make_unique<SettingsState>(_context));
         }
         else if (keyPressed->scancode == sf::Keyboard::Scancode::Enter) {
             _context.states->popState();

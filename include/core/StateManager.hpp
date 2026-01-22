@@ -12,7 +12,7 @@ public:
 
 public:
     // isReplacing = true -> replaces the current state
-    void pushState(std::unique_ptr<State> newState, bool isReplacing = true);
+    void pushState(std::unique_ptr<State> newState, bool isReplacing = false);
     void popState();
     void processStateChanges();
 

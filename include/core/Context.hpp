@@ -5,6 +5,8 @@
 #include <SFML/Audio.hpp>
 
 class StateManager;
+class LayoutManager;
+struct Settings;
 namespace ui {
     template <typename Id, typename Resource> class ResourceManager;
     class SoundPlayer;
@@ -15,10 +17,12 @@ namespace ui {
 struct Context {
     sf::RenderWindow* window;
     StateManager* states;
+    LayoutManager* layoutManager;
     ui::ResourceManager<ui::TextureId, sf::Texture>* textures;
     ui::ResourceManager<ui::SoundId, sf::SoundBuffer>* sounds;
     ui::SoundPlayer* soundPlayer;
     sf::Clock* clock;
+    Settings* settings;
 };
 
 #endif

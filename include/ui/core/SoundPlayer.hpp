@@ -22,9 +22,14 @@ public:
         _activeSounds.back().play();
     }
 
+    void setMasterVolumn(float volume) {
+        _masterVolume = volume;
+    }
+
 private:
     const ResourceManager<SoundId, sf::SoundBuffer>& _manager;
     std::list<sf::Sound> _activeSounds;
+    float _masterVolume = 100.f;
 };
 
 }
