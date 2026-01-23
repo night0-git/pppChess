@@ -18,7 +18,7 @@ namespace ui {
 struct Cursors {
     std::optional<sf::Cursor> loadCursorFromFile(const std::string& filename, sf::Vector2u hotspot) const {
         sf::Image img;
-        if (!img.loadFromFile("../../assets/cursors/" + filename)) {
+        if (!img.loadFromFile("./assets/cursors/" + filename)) {
             std::cerr << "Failed to load cursor: " + filename << "\n";
             return std::nullopt;
         }
