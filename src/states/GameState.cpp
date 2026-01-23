@@ -7,7 +7,7 @@
 
 GameState::GameState(Context& context) : State(context),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game.board())) {
-    _boardView->setSize(_context.window->getSize().y * 0.85f);
+    _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
     _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
 }
 
@@ -57,8 +57,9 @@ void GameState::init() {
 }
 
 void GameState::handleEvent(const sf::Event& event) {
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
     if (_context.window) {
-        _boardView->handleEvent(event, *(_context.window));
+        _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
     }
 
     if (event.is<sf::Event::Resized>()) {
@@ -78,6 +79,13 @@ void GameState::handleEvent(const sf::Event& event) {
 }
 
 void GameState::update(sf::Time dt) {
+    if (_boardView->getState() == ui::State::Hovered && _context.cursors->handOpened) {
+        _context.window->setMouseCursor(*(_context.cursors->handOpened));
+    } else if (_boardView->getState() == ui::State::Pressed && _context.cursors->handClosed) {
+        _context.window->setMouseCursor(*_context.cursors->handClosed);
+    } else if (_context.cursors->arrow) {
+        _context.window->setMouseCursor(*(_context.cursors->arrow));
+    }
     _boardView->update(dt);
 }
 

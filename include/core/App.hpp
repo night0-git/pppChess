@@ -11,11 +11,6 @@
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 
-struct Settings {
-    float masterVolume = 100.f;
-    float uiScale = 1.f;
-};
-
 class App {
 public:
     App();
@@ -30,10 +25,13 @@ private:
     sf::RenderWindow _window;
     StateManager _states;
     LayoutManager _layoutManager;
+
     ui::ResourceManager<ui::TextureId, sf::Texture> _textures;
     ui::ResourceManager<ui::SoundId, sf::SoundBuffer> _sounds;
     ui::SoundPlayer _soundPlayer;
+
     sf::Clock _clock;
+    Cursors _cursors;
     Settings _settings;
 
     Context _context;

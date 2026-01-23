@@ -7,6 +7,7 @@ App::App() : _soundPlayer(_sounds), _layoutManager(_window, sf::Vector2f(30, 30)
     unsigned int h = static_cast<unsigned int>(desktop.size.y * 0.8f);
     _window.create(sf::VideoMode({w, h}), "pppChess");
     _window.setMinimumSize(sf::Vector2u(1280, 720));
+    if (_cursors.arrow) _window.setMouseCursor(*_cursors.arrow);
     
     _window.setVerticalSyncEnabled(true);
     _context.window = &_window;
@@ -17,6 +18,8 @@ App::App() : _soundPlayer(_sounds), _layoutManager(_window, sf::Vector2f(30, 30)
     _context.soundPlayer = &_soundPlayer;
     _context.clock = &_clock;
     _context.settings = &_settings;
+    _context.cursors = &_cursors;
+
     _states.pushState(std::make_unique<MenuState>(_context));
 }
 

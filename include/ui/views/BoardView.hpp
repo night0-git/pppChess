@@ -8,6 +8,7 @@
 #include "../core/SoundPlayer.hpp"
 #include "../../game_logic/Board.hpp"
 #include "../../../include/ui/views/PieceView.hpp"
+#include "../../../include/ui/components/Component.hpp"
 #include "../../../include/core/BoardObserver.hpp"
 #include <map>
 #include <functional>
@@ -20,15 +21,15 @@ struct BoardTheme {
     sf::Color darkColor  = sf::Color(181, 136, 99);
 };
 
-class BoardView : public sf::Drawable, public sf::Transformable, public BoardObserver {
+class BoardView : public Component, public BoardObserver {
 public:
     BoardView(const ResourceManager<TextureId, sf::Texture>& textures, SoundPlayer& sounds, const Board& board);
 
-    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) override;
     void update(sf::Time dt);
     std::function<bool(Move move)> _onMoveRequest;
-    sf::Vector2f getSize() const;
-    void setSize(float size);
+    sf::Vector2f getSize() const override;
+    void setSize(sf::Vector2f size) override;
 
 public:
     void onBoardInit() override;

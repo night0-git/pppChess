@@ -6,15 +6,17 @@ using ui::BoardView;
 BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, SoundPlayer& sounds, const Board& board)
 : _textures(textures), _sounds(sounds), _board(board) {}
 
-void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window) {
-    sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
-    sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos);
-    sf::Vector2f localPos = getTransform().getInverse().transformPoint(worldPos);
+void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
+    sf::Vector2f localPos = getTransform().getInverse().transformPoint(mouseWorldPos);
     auto dragOffset = sf::Vector2f(-_theme.tileSize / 2.f, -_theme.tileSize / 2.f);
 
+    const sf::Vector2i sqr = localPosToSqr(localPos);
+    bool isHovered = _board.isWithinBoard(sqr) && _board.getPieceAt(sqr);
+
     if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
-        sf::Vector2i sqr = localPosToSqr(localPos);
-        
+        if (isHovered) {
+            _state = ui::State::Pressed;
+        }
         if (_board.isWithinBoard(sqr)) {
             // Handle click move first
             if (_selectedSqr) {
@@ -48,26 +50,36 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
     }
 
     else if (event.is<sf::Event::MouseButtonReleased>() && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left) {
+        if (_state == ui::State::Pressed) {
+            _state = isHovered ? ui::State::Hovered : ui::State::Idle;
+        }
         if (_draggedPiece && _selectedSqr) {
-            sf::Vector2i dest = localPosToSqr(localPos);
             // Check piece deselection
-            if (*_selectedSqr == dest && _isDeselecting) {
+            if (*_selectedSqr == sqr && _isDeselecting) {
                 _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
                 _selectedSqr = std::nullopt;
                 _isDeselecting = false;
             }
             else {
-                bool moved = _onMoveRequest && _onMoveRequest({*_selectedSqr, dest});
+                bool moved = _onMoveRequest && _onMoveRequest({*_selectedSqr, sqr});
                 if (!moved) {
                     // Snap back
                     _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
                 }
                 else {
                     _selectedSqr = std::nullopt;
+                    // Manually set because isHovered is not up to date
+                    isHovered = true;
                 }
             }
             _draggedPiece = nullptr;
         }
+    }
+
+    if (isHovered && _state == ui::State::Idle) {
+        _state = ui::State::Hovered;
+    } else if (!isHovered && _state == ui::State::Hovered) {
+        _state = ui::State::Idle;
     }
 }
 
@@ -81,8 +93,8 @@ sf::Vector2f BoardView::getSize() const {
     return sf::Vector2f(_theme.tileSize * Board::SIZE, _theme.tileSize * Board::SIZE);
 }
 
-void BoardView::setSize(float size) {
-    _theme.tileSize = size / Board::SIZE;
+void BoardView::setSize(sf::Vector2f size) {
+    _theme.tileSize = size.x / Board::SIZE;
     for (auto& [piece, view] : _pieceViews) {
         view.normalizeSprite();
     }

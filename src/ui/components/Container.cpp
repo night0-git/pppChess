@@ -1,5 +1,6 @@
 #include "../../../include/ui/components/Container.hpp"
 using ui::Container;
+using ui::State;
 using ui::VerticalContainer;
 using ui::HorizontalContainer;
 
@@ -27,8 +28,13 @@ void Container::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
         newMousePos -= getPosition();
     }
 
+    _state = ui::State::Idle;
     for (auto& component : _components) {
         component->handleEvent(event, window, newMousePos);
+        // Update container state
+        if (_state == ui::State::Idle && component->getState() != ui::State::Idle) {
+            _state = component->getState();
+        }
     }
 }
 

@@ -53,7 +53,11 @@ void MenuState::handleEvent(const sf::Event& event) {
 }
 
 void MenuState::update(sf::Time dt) {
-    
+    if ((_menu.getState() == ui::State::Hovered || _menu.getState() == ui::State::Pressed) && _context.cursors->hand) {
+        _context.window->setMouseCursor(*(_context.cursors->hand));
+    } else if (_context.cursors->arrow) {
+        _context.window->setMouseCursor(*(_context.cursors->arrow));
+    }
 }
 
 void MenuState::render() {

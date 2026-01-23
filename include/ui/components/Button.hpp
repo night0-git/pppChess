@@ -8,8 +8,6 @@
 
 namespace ui {
 
-// enum class ButtonState { Idle, Hovered, Pressed };
-
 class Button : public Component {
 public:
     Button(sf::Vector2f size, unsigned int textSize,
@@ -41,9 +39,6 @@ private:
     RoundedRect _body;
     RoundedRect _shadow;
     sf::Text _text;
-
-    // ButtonState _state = ButtonState::Idle;
-    bool _isPressed = false;
 
     void centerText();
     void scaleAndCenterText(float scale = 0.5f);
