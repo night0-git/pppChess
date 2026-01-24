@@ -85,15 +85,11 @@ void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window,
     && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left
     && isHovered) {
         _state = State::Pressed;
-        _body.move({0, _depthOffset / 2});
-        _text.move({0, _depthOffset / 2});
     }
 
     else if (event.is<sf::Event::MouseButtonReleased>()
     && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left
     && _state == State::Pressed) {
-        _body.move({0, -_depthOffset / 2});
-        _text.move({0, -_depthOffset / 2});
         if (isHovered && _callback) {
             _callback();
         }

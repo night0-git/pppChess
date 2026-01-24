@@ -1,5 +1,6 @@
 #include "../../include/game_logic/Board.hpp"
 #include <algorithm>
+#include <sstream>
 
 Board::Board() {
     setupDefaultBoard();
@@ -11,6 +12,10 @@ MoveResult Board::movePiece(Move move) {
 
     if (type == MoveType::Invalid) {
         moveResult.success = false;
+        // Notify when move is illegal
+        if (special == SpecialMove::Illegal) {
+            onMoveEvent(moveResult);
+        }
         return moveResult;
     }
 
@@ -142,13 +147,13 @@ std::pair<MoveType, SpecialMove> Board::getMoveInfo(Move move) {
         return {type, special};
     }
 
-    std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
-    if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
+    if (!isMoveSafe(move)) {
+        special = SpecialMove::Illegal;
         return {type, special};
     }
 
-    if (!isMoveSafe(move)) {
-        type = MoveType::Invalid;
+    std::vector<sf::Vector2i> validMoves = sourcePtr->validMoves(*this, src);
+    if (std::find(validMoves.begin(), validMoves.end(), dest) == validMoves.end()) {
         return {type, special};
     }
 

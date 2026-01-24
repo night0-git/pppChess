@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 #include <utility>
+#include <string>
 
 struct Move {
     sf::Vector2i src;
@@ -19,7 +20,7 @@ struct Move {
 };
 
 enum class MoveType { Move, Capture, Invalid };
-enum class SpecialMove { Castle, Promote, EnPassant, None };
+enum class SpecialMove { Castle, Promote, EnPassant, Illegal, None };
 
 struct MoveResult {
     bool success;

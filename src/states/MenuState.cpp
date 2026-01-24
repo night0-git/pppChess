@@ -18,6 +18,12 @@ _menu(_buttonSize, _padding) {
     });
     _menu.addComponent(std::move(play));
 
+    auto playBot = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY BOT", _font);
+    playBot->setCallback([this]() {
+        _context.states->pushState(std::make_unique<GameState>(_context));
+    });
+    _menu.addComponent(std::move(playBot));
+
     auto settings = std::make_unique<ui::Button>(_buttonSize, 50, "SETTINGS", _font);
     settings->setCallback([this]() {
         _context.states->pushState(std::make_unique<SettingsState>(_context));

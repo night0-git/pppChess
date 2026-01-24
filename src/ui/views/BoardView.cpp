@@ -76,6 +76,17 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
         }
     }
 
+    else if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Right) {
+        if (_selectedSqr && _draggedPiece) {
+            _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
+            _isMoving = false;
+            _draggedPiece = nullptr;
+            _selectedSqr = std::nullopt;
+            _isDeselecting = false;
+            _state = ui::State::Idle;
+        }
+    }
+
     if (isHovered && _state == ui::State::Idle) {
         _state = ui::State::Hovered;
     } else if (!isHovered && _state == ui::State::Hovered) {
@@ -119,7 +130,12 @@ void BoardView::onBoardInit() {
 }
 
 void BoardView::onMoveEvent(const MoveResult& result) {
-    if (!result.success) return;
+    if (!result.success) {
+        if (result.special == SpecialMove::Illegal) {
+            _sounds.play(ui::SoundId::Illegal);
+        }
+        return;
+    }
 
     // Delete old pieceview
     if (result.captured) {
