@@ -28,7 +28,6 @@ struct MoveResult {
     std::unique_ptr<Piece> captured = nullptr;
     SpecialMove special;
     std::unique_ptr<Piece> promotedPawn = nullptr;
-    std::optional<PieceType> promoteType = std::nullopt;
     std::optional<Move> rookMove = std::nullopt;
     bool isCheck = false;
     MoveResult(bool s, Move m, SpecialMove sp) : success(s), move(m), special(sp) {};
@@ -40,6 +39,7 @@ public:
 
     MoveResult movePiece(Move move);
     std::unique_ptr<Piece> promote(sf::Vector2i sqr, PieceType type);
+    std::optional<std::string> getMoveNotation(Move move, std::optional<PieceType> promoteType = std::nullopt);
 
 public:
     // Helpers
@@ -73,6 +73,11 @@ private:
     void setupDefaultBoard();
     sf::Vector2i _whiteKingPos = sf::Vector2i(7, 4);
     sf::Vector2i _blackKingPos = sf::Vector2i(0, 4);
+
+private:
+    bool applyMoveInternal(Move move, std::optional<PieceType> promoteType = std::nullopt);
+    bool undoLastMoveInternal();
+    std::vector<MoveResult> _internalMoves;
 
 private:
     std::vector<std::weak_ptr<BoardObserver>> _observers;

@@ -141,13 +141,9 @@ void BoardView::onMoveEvent(const MoveResult& result) {
     if (result.captured) {
         _pieceViews.erase(result.captured.get());
     }
-    // Move pieceview
-    if (result.rookMove) {
-        movePieceView(*result.rookMove);
-    }
-    movePieceView(result.move);
-    // Add new pieceview
-    if (result.promotedPawn && result.promoteType) {
+    
+    // Update pieceViews map if this is promotion
+    if (result.promotedPawn) {
         _pieceViews.erase(result.promotedPawn.get());
         auto pcs = _board.getPieceAt(result.move.dest);
         if (pcs) {
@@ -157,6 +153,12 @@ void BoardView::onMoveEvent(const MoveResult& result) {
             _pieceViews.insert_or_assign(pcs, pcsView);
         }
     }
+
+    // Move pieceview
+    if (result.rookMove) {
+        movePieceView(*result.rookMove);
+    }
+    movePieceView(result.move);
 
     // Play sound
     if (result.isCheck) {
@@ -183,7 +185,7 @@ void BoardView::movePieceView(Move move) {
         if (_isMoving) {
             _pieceViews.at(pcs).animateToPosition(move.dest);
             _isMoving = false;
-        } else {        
+        } else {
             _pieceViews.at(pcs).snapToPosition(move.dest);
         }
     }

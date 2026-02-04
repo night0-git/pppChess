@@ -97,7 +97,7 @@ MoveResult Board::movePiece(Move move) {
 std::unique_ptr<Piece> Board::promote(sf::Vector2i sqr, PieceType type) {
     PieceColor color = getPieceAt(sqr)->color();
     auto oldPawn = takePieceAt(sqr);
-    switch(type) {
+    switch (type) {
     case PieceType::Queen:
         _grid[sqr.x][sqr.y] = std::make_unique<Queen>(color);
         break;
@@ -115,6 +115,104 @@ std::unique_ptr<Piece> Board::promote(sf::Vector2i sqr, PieceType type) {
     }
     _grid[sqr.x][sqr.y]->setMoved();
     return oldPawn;
+}
+
+std::optional<std::string> Board::getMoveNotation(Move move, std::optional<PieceType> promoteType) {
+    const Piece* pcs = getPieceAt(move.src);
+    if (!pcs || !isValidMove(pcs->color(), move.dest)) {
+        return std::nullopt;
+    }
+
+    auto [type, special] = getMoveInfo(move);
+    
+    if (special == SpecialMove::Castle) {
+        return (move.dest.y > move.src.y) ? "O-O" : "O-O-O";
+    }
+
+    std::stringstream ss;
+    char pieceChar = '\0';
+    switch (pcs->type()) {
+        case PieceType::King:   pieceChar = 'K'; break;
+        case PieceType::Queen:  pieceChar = 'Q'; break;
+        case PieceType::Rook:   pieceChar = 'R'; break;
+        case PieceType::Bishop: pieceChar = 'B'; break;
+        case PieceType::Knight: pieceChar = 'N'; break;
+        default: break; // Pawn
+    }
+
+    if (pieceChar != '\0') {
+        ss << pieceChar;
+        
+        // Disambiguation (e.g., "Nbd7" if two knights can go to d7)
+        bool fileMatch = false;
+        bool rankMatch = false;
+        bool otherCanMove = false;
+
+        // Scan board for other pieces of same type and color
+        for (int x = 0; x < SIZE; x++) {
+            for (int y = 0; y < SIZE; y++) {
+                sf::Vector2i otherPos = {x, y};
+                if (otherPos == move.src) continue;
+
+                const Piece* other = getPieceAt(otherPos);
+                if (other && other->type() == pcs->type() && other->color() == pcs->color()) {
+                    // Check if this other piece can also move to the destination
+                    std::vector<sf::Vector2i> moves = other->validMoves(*this, otherPos);
+                    bool canReach = std::find(moves.begin(), moves.end(), move.dest) != moves.end();
+                    
+                    if (canReach) {
+                        // Strict check: if the move is actually safe (not pinned)
+                        Move otherMove = {otherPos, move.dest};
+                        if (isMoveSafe(otherMove)) {
+                        otherCanMove = true;
+                        if (otherPos.y == move.src.y) fileMatch = true; // Same file
+                        if (otherPos.x == move.src.x) rankMatch = true; // Same rank
+                        }
+                    }
+                }
+            }
+        }
+
+        if (otherCanMove) {
+            if (!fileMatch) ss << char('a' + move.src.y);      // Disambiguate by file (Nbd7)
+            else if (!rankMatch) ss << char('8' - move.src.x); // Disambiguate by rank (N1f3)
+            else { // Both file and rank match (e.g. promoted queens)
+                ss << char('a' + move.src.y) << char('8' - move.src.x);
+            }
+        }
+    }
+
+    // Captures (x)
+    // For pawns, captures MUST include the source file (e.g., "exd5")
+    if (type == MoveType::Capture) {
+        if (pcs->type() == PieceType::Pawn) {
+            ss << char('a' + move.src.y);
+        }
+        ss << "x";
+    }
+
+    // Destination coordinates
+    ss << char('a' + move.dest.y);
+    ss << char('8' - move.dest.x); // '8' - x because x=0 is rank 8
+
+    // Promotion
+    if (special == SpecialMove::Promote && promoteType) {
+        switch (*promoteType) {
+        case PieceType::Queen:  ss << "=Q"; break;
+        case PieceType::Rook:  ss << "=R"; break;
+        case PieceType::Knight:  ss << "=N"; break;
+        case PieceType::Bishop:  ss << "=B"; break;
+        }
+    }
+
+    // Check/Checkmate (+/#)
+    applyMoveInternal(move, promoteType);
+    if (isChecked(!pcs->color())) {
+        ss << (!hasLegalMoves(!pcs->color()) ? "#" : "+");
+    }
+    undoLastMoveInternal();
+
+    return ss.str();
 }
 
 bool Board::isWithinBoard(sf::Vector2i sqr) {
@@ -462,4 +560,81 @@ void Board::setupDefaultBoard() {
     _grid[SIZE - 1][5] = std::make_unique<Bishop>(PieceColor::White);
     _grid[SIZE - 1][6] = std::make_unique<Knight>(PieceColor::White);
     _grid[SIZE - 1][7] = std::make_unique<Rook>(PieceColor::White);
+}
+
+bool Board::applyMoveInternal(Move move, std::optional<PieceType> promoteType) {
+    auto [type, special] = getMoveInfo(move);
+    auto src = getPieceAt(move.src);
+    if (!src || !isValidMove(src->color(), move.dest)) {
+        return false;
+    }
+    
+    MoveResult result(true, move, special);
+
+    result.captured = takePieceAt(move.dest);
+    _grid[move.dest.x][move.dest.y] = takePieceAt(move.src);
+    
+    // Update king pos
+    if (src->type() == PieceType::King) {
+        if (src->color() == PieceColor::White) _whiteKingPos = move.dest;
+        else _blackKingPos = move.dest;
+    }
+
+    result.isCheck = isChecked(!src->color());
+
+    if (special == SpecialMove::Castle) {
+        sf::Vector2i rookSrc, rookDest;
+        if (move.dest.y > move.src.y) { // Kingside castling
+            rookSrc = {move.src.x, SIZE - 1};
+            rookDest = {move.src.x, move.dest.y - 1};
+        } else { // Queenside castling
+            rookSrc = {move.src.x, 0};
+            rookDest = {move.src.x, move.dest.y + 1};
+        }
+        auto rook = takePieceAt(rookSrc);
+        if (rook) {
+            _grid[rookDest.x][rookDest.y] = std::move(rook);
+            result.rookMove = Move(rookSrc, rookDest);
+        }
+    }
+    else if (special == SpecialMove::Promote && promoteType) {
+        result.promotedPawn = promote(move.dest, *promoteType);
+    }
+
+    _internalMoves.push_back(std::move(result));
+    return true;
+}
+
+bool Board::undoLastMoveInternal() {
+    if (_internalMoves.empty()) {
+        return false;
+    }
+    
+    auto result = std::move(_internalMoves.back());
+    _internalMoves.pop_back();
+
+    // Move the source piece back
+    if (!result.promotedPawn) {
+        _grid[result.move.src.x][result.move.src.y] = takePieceAt({result.move.dest});
+    } else {
+        _grid[result.move.src.x][result.move.src.y] = std::move(result.promotedPawn);
+    }
+
+    // Update king pos
+    auto srcPcs = getPieceAt(result.move.src);
+    if (srcPcs->type() == PieceType::King) {
+        if (srcPcs->color() == PieceColor::White) _whiteKingPos = result.move.src;
+        else _blackKingPos = result.move.src;
+    }
+
+    // Place captured piece back
+    if (result.captured) {
+        _grid[result.move.dest.x][result.move.dest.y] = std::move(result.captured);
+    }
+
+    if (result.rookMove) {
+        _grid[result.rookMove->src.x][result.rookMove->src.y] = takePieceAt(result.rookMove->dest);
+    }
+
+    return true;
 }
