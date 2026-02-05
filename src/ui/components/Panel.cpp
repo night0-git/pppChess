@@ -1,4 +1,4 @@
-#include "../../../include/ui/components/Panel.hpp"
+#include "Panel.hpp"
 using ui::Panel;
 
 Panel::Panel(sf::Vector2f size, sf::Color color)

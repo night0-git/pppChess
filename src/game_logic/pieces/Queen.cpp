@@ -1,4 +1,4 @@
-#include "../../../include/game_logic/Piece.hpp"
+#include "../Piece.hpp"
 
 Queen::Queen(PieceColor color) : Piece(PieceType::Queen, color) {}
 

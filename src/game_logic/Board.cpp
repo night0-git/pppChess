@@ -1,4 +1,4 @@
-#include "../../include/game_logic/Board.hpp"
+#include "Board.hpp"
 #include <algorithm>
 #include <sstream>
 

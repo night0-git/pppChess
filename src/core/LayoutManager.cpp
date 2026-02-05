@@ -1,4 +1,4 @@
-#include "../../include/core/LayoutManager.hpp"
+#include "LayoutManager.hpp"
 
 LayoutManager::LayoutManager(const sf::RenderWindow& window, sf::Vector2f padding)
 : _window(window), _padding(padding) {}

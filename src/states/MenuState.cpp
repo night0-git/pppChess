@@ -1,11 +1,11 @@
-#include "../../include/states/MenuState.hpp"
-#include "../../include/states/GameState.hpp"
-#include "../../include/states/SettingsState.hpp"
-#include "../../include/core/StateManager.hpp"
-#include "../../include/core/LayoutManager.hpp"
-#include "../../include/ui/components/Component.hpp"
-#include "../../include/ui/components/Button.hpp"
-#include "../../include/ui/components/Panel.hpp"
+#include "MenuState.hpp"
+#include "GameState.hpp"
+#include "SettingsState.hpp"
+#include "../core/StateManager.hpp"
+#include "../core/LayoutManager.hpp"
+#include "../ui/components/Component.hpp"
+#include "../ui/components/Button.hpp"
+#include "../ui/components/Panel.hpp"
 
 MenuState::MenuState(Context& context) : State(context),
 _menu(_buttonSize, _padding) {

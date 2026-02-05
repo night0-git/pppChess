@@ -1,4 +1,4 @@
-#include "../../../include/ui/components/Button.hpp"
+#include "Button.hpp"
 using ui::Button, ui::State;
 
 Button::Button(sf::Vector2f size, unsigned int textSize,

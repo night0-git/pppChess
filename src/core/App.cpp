@@ -1,5 +1,5 @@
-#include "../../include/core/App.hpp"
-#include "../../include/states/MenuState.hpp"
+#include "App.hpp"
+#include "../states/MenuState.hpp"
 
 App::App() : _soundPlayer(_sounds), _layoutManager(_window, sf::Vector2f(30, 30)) {
     sf::VideoMode desktop = sf::VideoMode::getDesktopMode();

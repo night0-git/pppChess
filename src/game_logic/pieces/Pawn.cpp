@@ -1,5 +1,5 @@
-#include "../../../include/game_logic/Piece.hpp"
-#include "../../../include/game_logic/Board.hpp"
+#include "../Piece.hpp"
+#include "../Board.hpp"
 
 Pawn::Pawn(PieceColor color) : Piece(PieceType::Pawn, color) {}
 

@@ -1,4 +1,4 @@
-#include "../../../include/ui/components/Component.hpp"
+#include "Component.hpp"
 #include <cstdint>
 #include <algorithm>
 using ui::Component, ui::State;

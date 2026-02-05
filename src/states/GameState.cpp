@@ -1,8 +1,8 @@
-#include "../../include/states/GameState.hpp"
-#include "../../include/states/MenuState.hpp"
-#include "../../include/states/SettingsState.hpp"
-#include "../../include/core/StateManager.hpp"
-#include "../../include/core/LayoutManager.hpp"
+#include "GameState.hpp"
+#include "MenuState.hpp"
+#include "SettingsState.hpp"
+#include "../core/StateManager.hpp"
+#include "../core/LayoutManager.hpp"
 #include <iostream>
 
 GameState::GameState(Context& context) : State(context),

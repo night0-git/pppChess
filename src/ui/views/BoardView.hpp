@@ -7,9 +7,9 @@
 #include "../core/ResourceManager.hpp"
 #include "../core/SoundPlayer.hpp"
 #include "../../game_logic/Board.hpp"
-#include "../../../include/ui/views/PieceView.hpp"
-#include "../../../include/ui/components/Component.hpp"
-#include "../../../include/core/BoardObserver.hpp"
+#include "PieceView.hpp"
+#include "../components/Component.hpp"
+#include "../../core/BoardObserver.hpp"
 #include <map>
 #include <functional>
 

@@ -1,4 +1,4 @@
-#include "../../../include/ui/views/PieceView.hpp"
+#include "PieceView.hpp"
 #include <utility>
 #include <map>
 using std::map, std::pair;

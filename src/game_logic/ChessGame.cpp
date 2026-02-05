@@ -1,4 +1,4 @@
-#include "../../include/game_logic/ChessGame.hpp"
+#include "ChessGame.hpp"
 #include <iostream>
 
 ChessGame::ChessGame() : _currentTurn(PieceColor::White),

@@ -1,4 +1,4 @@
-#include "../../../include/ui/views/BoardView.hpp"
+#include "BoardView.hpp"
 #include <iostream>
 #include <cmath>
 using ui::BoardView;

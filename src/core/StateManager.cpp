@@ -1,4 +1,4 @@
-#include "../../include/core/StateManager.hpp"
+#include "StateManager.hpp"
 
 StateManager::StateManager() : _isRemoving(false), _isAdding(false), _isReplacing(false) {}
 

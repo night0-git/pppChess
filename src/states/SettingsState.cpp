@@ -1,5 +1,5 @@
-#include "../../include/states/SettingsState.hpp"
-#include "../../include/core/StateManager.hpp"
+#include "SettingsState.hpp"
+#include "../core/StateManager.hpp"
 
 SettingsState::SettingsState(Context& context) : State(context), _text(_font, "Settings") {}
 
