@@ -31,11 +31,21 @@ struct MoveResult {
     std::optional<Move> rookMove = std::nullopt;
     bool isCheck = false;
     MoveResult(bool s, Move m, SpecialMove sp) : success(s), move(m), special(sp) {};
+
+    // Since this struct contains unique_ptr, we need to define move semantics
+    MoveResult(MoveResult&& other) noexcept = default;
+    MoveResult& operator=(MoveResult&& other) noexcept = default;
+
+    // And delete copy semantics
+    MoveResult(const MoveResult&) = delete;
+    MoveResult& operator=(const MoveResult&) = delete;
 };
 
 class Board {
 public:
     Board();
+    Board(const Board& other);
+    Board& operator=(const Board& other);
 
     MoveResult movePiece(Move move);
     std::unique_ptr<Piece> promote(sf::Vector2i sqr, PieceType type);

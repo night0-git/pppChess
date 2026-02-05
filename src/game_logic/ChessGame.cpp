@@ -93,4 +93,5 @@ bool ChessGame::isRepetition(Move move) const {
 
 void ChessGame::botMove() {
     _board.movePiece(_bot.getBestMove(_board));
+    _currentTurn = !_currentTurn;
 }

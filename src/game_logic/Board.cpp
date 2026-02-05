@@ -6,6 +6,44 @@ Board::Board() {
     setupDefaultBoard();
 }
 
+Board::Board(const Board& other) {
+    for (int row = 0; row < SIZE; row++) {
+        for (int col = 0; col < SIZE; col++) {
+            auto pcs = other.getPieceAt({row, col});
+            if (!pcs) {
+                _grid[row][col] = nullptr;
+                continue;
+            }
+            PieceColor color = pcs->color();
+            switch (pcs->type()) {
+            case PieceType::Pawn:
+                _grid[row][col] = std::make_unique<Pawn>(color);
+                break;
+            case PieceType::Knight:
+                _grid[row][col] = std::make_unique<Knight>(color);
+                break;
+            case PieceType::Bishop:
+                _grid[row][col] = std::make_unique<Bishop>(color);
+                break;
+            case PieceType::Rook:
+                _grid[row][col] = std::make_unique<Rook>(color);
+                break;
+            case PieceType::Queen:
+                _grid[row][col] = std::make_unique<Queen>(color);
+                break;
+            case PieceType::King:
+                _grid[row][col] = std::make_unique<King>(color);
+                break;
+            }
+        }
+    }
+    _enPassantTarget = other._enPassantTarget;
+    _whiteKingPos = other._whiteKingPos;
+    _blackKingPos = other._blackKingPos;
+    _internalMoves.clear();
+    _observers.clear();
+}
+
 MoveResult Board::movePiece(Move move) {
     auto [type, special] = getMoveInfo(move);
     MoveResult moveResult(true, move, special);
@@ -588,12 +626,12 @@ void Board::setupDefaultBoard() {
 }
 
 bool Board::applyMoveInternal(Move move, std::optional<PieceType> promoteType) {
-    auto [type, special] = getMoveInfo(move);
     auto src = getPieceAt(move.src);
     if (!src || !isValidMove(src->color(), move.dest)) {
         return false;
     }
-    
+
+    auto [type, special] = getMoveInfo(move);
     MoveResult result(true, move, special);
 
     result.captured = takePieceAt(move.dest);

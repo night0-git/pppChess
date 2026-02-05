@@ -21,6 +21,8 @@ Move ChessBot::getBestMove(Board& board) {
 
         int eval = alphaBeta(board, _maxDepth - 1, INT_MIN, INT_MAX, !isMaximizing);
 
+        board.undoLastMoveInternal();
+
         if (isMaximizing) {
             if (eval > bestEval) {
                 bestEval = eval;
@@ -47,9 +49,13 @@ int ChessBot::alphaBeta(Board& board, int depth, int alpha, int beta, bool isMax
     if (isMaximizing) {
         int maxEval = INT_MIN;
         for (const auto& move : moves) {
+            auto movingPcs = board.getPieceAt(move.src);
+            if (!movingPcs) continue;
+            auto movingColor = movingPcs->color();
+
             board.applyMoveInternal(move);
 
-            if (board.isChecked(board.getPieceAt(move.dest)->color())) {
+            if (board.isChecked(movingColor)) {
                 board.undoLastMoveInternal();
                 continue;
             }
@@ -69,9 +75,13 @@ int ChessBot::alphaBeta(Board& board, int depth, int alpha, int beta, bool isMax
     else {
         int minEval = INT_MAX;
         for (const auto& move : moves) {
+            auto movingPcs = board.getPieceAt(move.src);
+            if (!movingPcs) continue;
+            auto movingColor = movingPcs->color();
+
             board.applyMoveInternal(move);
-            
-            if (board.isChecked(board.getPieceAt(move.dest)->color())) {
+
+            if (board.isChecked(movingColor)) {
                 board.undoLastMoveInternal();
                 continue;
             }
