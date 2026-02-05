@@ -1,4 +1,5 @@
-#include "../../include/game_logic/ChessGame.hpp"
+#include "ChessGame.hpp"
+#include <iostream>
 
 ChessGame::ChessGame() : _currentTurn(PieceColor::White),
 _status(GameStatus::Active) {}
@@ -33,8 +34,13 @@ void ChessGame::addBoardObserver(std::shared_ptr<BoardObserver> observer) {
 bool ChessGame::attemptMove(Move move) {
     auto srcPtr = _board.getPieceAt(move.src);
     if (srcPtr && srcPtr->color() == _currentTurn) {
+
+        auto notation = _board.getMoveNotation(move);
+
         MoveResult res = _board.movePiece(move);
         if (res.success) {
+            if (notation) std::cout << *notation << "\n";
+
             if (res.captured) {
                 _capturedPiece.push_back(std::move(res.captured));
             }

@@ -1,5 +1,5 @@
-#include "../../../include/game_logic/Piece.hpp"
-#include "../../../include/game_logic/Board.hpp"
+#include "../Piece.hpp"
+#include "../Board.hpp"
 #include <algorithm>
 
 King::King(PieceColor color) : Piece(PieceType::King, color) {}

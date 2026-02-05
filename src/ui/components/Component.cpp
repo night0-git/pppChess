@@ -1,7 +1,11 @@
-#include "../../../include/ui/components/Component.hpp"
+#include "Component.hpp"
 #include <cstdint>
 #include <algorithm>
-using ui::Component;
+using ui::Component, ui::State;
+
+State Component::getState() const {
+    return _state;
+}
 
 void Component::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {}
 

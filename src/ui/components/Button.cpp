@@ -1,5 +1,5 @@
-#include "../../../include/ui/components/Button.hpp"
-using ui::Button;
+#include "Button.hpp"
+using ui::Button, ui::State;
 
 Button::Button(sf::Vector2f size, unsigned int textSize,
 const std::string& text, const sf::Font& font) : _text(font, text) {
@@ -81,18 +81,25 @@ void Button::handleEvent(const sf::Event& event, const sf::RenderWindow& window,
     sf::FloatRect bounds = getTransform().transformRect(_body.getGlobalBounds());
     bool isHovered = bounds.contains(mouseWorldPos);
 
-    if (event.is<sf::Event::MouseButtonPressed>() && isHovered) {
-        _body.move({0, _depthOffset / 2});
-        _text.move({0, _depthOffset / 2});
-        _isPressed = true;
+    if (event.is<sf::Event::MouseButtonPressed>() 
+    && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left
+    && isHovered) {
+        _state = State::Pressed;
     }
 
-    if (event.is<sf::Event::MouseButtonReleased>() && _isPressed) {
-        _body.move({0, -_depthOffset / 2});
-        _text.move({0, -_depthOffset / 2});
-        _isPressed = false;
+    else if (event.is<sf::Event::MouseButtonReleased>()
+    && event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left
+    && _state == State::Pressed) {
         if (isHovered && _callback) {
             _callback();
+        }
+
+        _state = isHovered ? State::Hovered : State::Idle;
+    }
+
+    else if (event.is<sf::Event::MouseMoved>()) {
+        if (_state != State::Pressed) {
+            _state = isHovered ? State::Hovered : State::Idle;
         }
     }
 }

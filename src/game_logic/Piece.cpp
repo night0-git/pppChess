@@ -1,4 +1,4 @@
-#include "../../include/game_logic/Piece.hpp"
+#include "Piece.hpp"
 
 Piece::Piece(PieceType type, PieceColor color)
 : _type(type), _color(color), _hasMoved(false) {}
