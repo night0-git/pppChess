@@ -4,6 +4,7 @@
 #include "Board.hpp"
 #include <SFML/Graphics.hpp>
 #include <optional>
+#include "../engine/ChessBot.hpp"
 
 enum class GameStatus { Active, WhiteWon, BlackWon, Draw };
 
@@ -12,6 +13,7 @@ public:
     ChessGame();
 
     GameStatus status() const;
+    PieceColor currentTurn() const;
 
     void reset();
     const Piece* getLastCaptured() const;
@@ -21,7 +23,9 @@ public:
     void addBoardObserver(std::shared_ptr<BoardObserver> observer);
     bool attemptMove(Move move);
 
-    
+    ChessBot _bot = ChessBot(3);
+    PieceColor _botColor = PieceColor::Black;
+    void botMove();
 
 private:
     Board _board;

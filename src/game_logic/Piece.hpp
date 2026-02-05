@@ -7,7 +7,7 @@ using std::vector;
 
 class Board;
 
-enum class PieceType { Rook, Knight, Bishop, King, Queen, Pawn };
+enum class PieceType { Pawn, Knight, Bishop, Rook, Queen, King };
 enum class PieceColor { White, Black };
 inline PieceColor operator!(PieceColor color) {
     return (color == PieceColor::White ? PieceColor::Black : PieceColor::White);

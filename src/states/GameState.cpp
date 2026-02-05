@@ -36,6 +36,9 @@ void GameState::init() {
     _context.sounds->load(ui::SoundId::TenSeconds, "./assets/sounds/tenseconds.wav");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
+        if (_game.currentTurn() == _game._botColor) {
+            return false;
+        }
         bool success = _game.attemptMove(move);
         if (success) {
             GameStatus status = _game.status();
@@ -49,6 +52,9 @@ void GameState::init() {
                 else {
                     std::cerr << "Draw!";
                 }
+            }
+            else {
+                _game.botMove();
             }
         }
         return success;

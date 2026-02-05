@@ -51,10 +51,15 @@ public:
     bool hasLegalMoves(PieceColor color);
     bool insufficientMaterial() const;
     std::vector<Move> getAllValidMoves(PieceColor color);
+    std::vector<Move> getAllValidMoves();
+    bool applyMoveInternal(Move move, std::optional<PieceType> promoteType = std::nullopt);
+    bool undoLastMoveInternal();
 
     // Getters
     const Piece* getPieceAt(sf::Vector2i sqr) const;
     std::optional<sf::Vector2i> enPassantTarget() const;
+    sf::Vector2i whiteKingPos() const;
+    sf::Vector2i blackKingPos() const;
 
     void boardInit();
     void addObserver(std::shared_ptr<BoardObserver> observer);
@@ -75,8 +80,6 @@ private:
     sf::Vector2i _blackKingPos = sf::Vector2i(0, 4);
 
 private:
-    bool applyMoveInternal(Move move, std::optional<PieceType> promoteType = std::nullopt);
-    bool undoLastMoveInternal();
     std::vector<MoveResult> _internalMoves;
 
 private:

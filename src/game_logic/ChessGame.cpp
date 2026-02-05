@@ -8,6 +8,10 @@ GameStatus ChessGame::status() const {
     return _status;
 }
 
+PieceColor ChessGame::currentTurn() const {
+    return _currentTurn;
+}
+
 void ChessGame::reset() {
     _board.boardInit();
     _currentTurn = PieceColor::White;
@@ -85,4 +89,8 @@ bool ChessGame::isRepetition(Move move) const {
     }
 
     return true;
+}
+
+void ChessGame::botMove() {
+    _board.movePiece(_bot.getBestMove(_board));
 }
