@@ -10,6 +10,7 @@
 
 class GameState : public State {
 public:
+    explicit GameState(Context& context);
     explicit GameState(Context& context, std::unique_ptr<Player> opponent);
     ~GameState();
 

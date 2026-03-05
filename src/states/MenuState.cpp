@@ -15,7 +15,7 @@ _menu(_buttonSize, _padding) {
 
     auto play = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY", _font);
     play->setCallback([this]() {
-        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<BotPlayer>(3)));
+        _context.states->pushState(std::make_unique<GameState>(_context));
     });
     _menu.addComponent(std::move(play));
 

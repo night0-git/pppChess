@@ -10,6 +10,7 @@ enum class GameStatus { Active, WhiteWon, BlackWon, Draw };
 
 class ChessGame : public BoardObserver, public std::enable_shared_from_this<ChessGame> {
 public:
+    ChessGame(PieceColor localColor);
     ChessGame(std::unique_ptr<Player> opponent, PieceColor localColor);
 
     void opponentMove();
@@ -17,6 +18,7 @@ public:
     GameStatus status() const;
     PieceColor currentTurn() const;
     bool isLocalMove() const;
+    bool isLocalOpponent() const;
     void changeTurn();
 
     void reset();

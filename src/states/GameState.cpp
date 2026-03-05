@@ -5,6 +5,14 @@
 #include "../core/LayoutManager.hpp"
 #include <iostream>
 
+GameState::GameState(Context& context)
+: State(context), _game(std::make_shared<ChessGame>(PieceColor::White)),
+_boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
+{
+    _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+};
+
 GameState::GameState(Context& context, std::unique_ptr<Player> opponent)
 : State(context), _game(std::make_shared<ChessGame>(std::move(opponent), PieceColor::White)),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
@@ -56,7 +64,7 @@ void GameState::init() {
 void GameState::handleEvent(const sf::Event& event) {
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
     if (_context.window) {
-        if (_game->isLocalMove()) {
+        if (_game->isLocalMove() || _game->isLocalOpponent()) {
             _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
         }
     }
@@ -101,7 +109,7 @@ void GameState::update(sf::Time dt) {
         return;
     }
     
-    if (!_game->isLocalMove() && !_isOpponentThinking) {
+    if (!_game->isLocalMove() && !_isOpponentThinking && !_game->isLocalOpponent()) {
         _isOpponentThinking = true;
 
         // Join the previous turn before joining the new one

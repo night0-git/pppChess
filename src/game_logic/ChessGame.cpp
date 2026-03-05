@@ -3,6 +3,9 @@
 #include <chrono>
 #include <thread>
 
+ChessGame::ChessGame(PieceColor localColor)
+: _opponent(nullptr), _isLocalMove(localColor == PieceColor::White) {}
+
 ChessGame::ChessGame(std::unique_ptr<Player> opponent, PieceColor localColor)
 : _opponent(std::move(opponent)), _isLocalMove(localColor == PieceColor::White) {}
 
@@ -29,6 +32,10 @@ PieceColor ChessGame::currentTurn() const {
 
 bool ChessGame::isLocalMove() const {
     return _isLocalMove;
+}
+
+bool ChessGame::isLocalOpponent() const {
+    return !_opponent;
 }
 
 void ChessGame::changeTurn() {
@@ -117,7 +124,9 @@ bool ChessGame::isRepetition(Move move) const {
 void ChessGame::onBoardInit() {}
     
 void ChessGame::onMoveEvent(const MoveResult& result) {
-    changeTurn();
+    if (result.success) {
+        changeTurn();
+    }
 }
 
 void ChessGame::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {}
