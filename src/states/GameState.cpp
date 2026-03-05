@@ -13,6 +13,12 @@ _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundP
     _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
 };
 
+GameState::~GameState() {
+    if (_opponentThread.joinable()) {
+        _opponentThread.join();
+    }
+}
+
 void GameState::init() {
     _game->addBoardObserver(_boardView);
     _game->addBoardObserver(_game);
@@ -42,7 +48,6 @@ void GameState::init() {
         if (_game->attemptMove(move)) {
             return true;
         }
-        std::cerr << "Invalid move";
         return false;
     };
     _game->reset();
@@ -96,8 +101,18 @@ void GameState::update(sf::Time dt) {
         return;
     }
     
-    if (!_game->isLocalMove()) {
-        _game->opponentMove();
+    if (!_game->isLocalMove() && !_isOpponentThinking) {
+        _isOpponentThinking = true;
+
+        // Join the previous turn before joining the new one
+        if (_opponentThread.joinable()) {
+            _opponentThread.join();
+        }
+        
+        _opponentThread = std::thread([this]() {
+            _game->opponentMove();
+            _isOpponentThinking = false;
+        });
     }
 
     _boardView->update(dt);

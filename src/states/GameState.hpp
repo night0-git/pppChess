@@ -5,10 +5,13 @@
 #include "../ui/views/BoardView.hpp"
 #include "../game_logic/ChessGame.hpp"
 #include <memory>
+#include <atomic>
+#include <thread>
 
 class GameState : public State {
 public:
     explicit GameState(Context& context, std::unique_ptr<Player> opponent);
+    ~GameState();
 
 public:
     void init() override;
@@ -22,6 +25,9 @@ public:
 private:
     std::shared_ptr<ChessGame> _game;
     std::shared_ptr<ui::BoardView> _boardView;
+
+    std::atomic<bool> _isOpponentThinking = false;
+    std::thread _opponentThread;
 };
 
 #endif
