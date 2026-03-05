@@ -1,8 +1,23 @@
 #include "ChessGame.hpp"
 #include <iostream>
+#include <chrono>
+#include <thread>
 
-ChessGame::ChessGame() : _currentTurn(PieceColor::White),
-_status(GameStatus::Active) {}
+ChessGame::ChessGame(std::unique_ptr<Player> opponent, PieceColor localColor)
+: _opponent(std::move(opponent)), _isLocalMove(localColor == PieceColor::White) {}
+
+void ChessGame::opponentMove() {
+    auto move = _opponent->getMove(_board, _currentTurn);
+    
+    if (move.has_value()) {
+        // Trying to delay the move until the animation is finished
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        if (!attemptMove(move.value())) {
+            std::cerr << "Bot made an invalid move.";
+            _status = GameStatus::WhiteWon;
+        }
+    }
+}
 
 GameStatus ChessGame::status() const {
     return _status;
@@ -10,6 +25,15 @@ GameStatus ChessGame::status() const {
 
 PieceColor ChessGame::currentTurn() const {
     return _currentTurn;
+}
+
+bool ChessGame::isLocalMove() const {
+    return _isLocalMove;
+}
+
+void ChessGame::changeTurn() {
+    _isLocalMove = !_isLocalMove;
+    _currentTurn = !_currentTurn;
 }
 
 void ChessGame::reset() {
@@ -65,7 +89,6 @@ bool ChessGame::attemptMove(Move move) {
             }
 
             _moveHistory.push_back(move);
-            _currentTurn = !_currentTurn;
             return true;
         }
     }
@@ -91,7 +114,10 @@ bool ChessGame::isRepetition(Move move) const {
     return true;
 }
 
-void ChessGame::botMove() {
-    _board.movePiece(_bot.getBestMove(_board));
-    _currentTurn = !_currentTurn;
+void ChessGame::onBoardInit() {}
+    
+void ChessGame::onMoveEvent(const MoveResult& result) {
+    changeTurn();
 }
+
+void ChessGame::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {}

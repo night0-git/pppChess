@@ -4,11 +4,10 @@
 
 ChessBot::ChessBot(int maxDepth) : _maxDepth(maxDepth) {}
 
-Move ChessBot::getBestMove(Board& board) {
-    auto moves = board.getAllValidMoves();
+Move ChessBot::getBestMove(Board& board, PieceColor botColor) {
+    auto moves = board.getAllValidMoves(botColor);
     Move bestMove = {{0, 0}, {0, 0}};
 
-    PieceColor botColor = PieceColor::Black;
     bool isMaximizing = botColor == PieceColor::White;
     int bestEval = isMaximizing ? INT_MIN : INT_MAX;
 
@@ -44,7 +43,8 @@ int ChessBot::alphaBeta(Board& board, int depth, int alpha, int beta, bool isMax
         return evaluate(board);
     }
 
-    auto moves = board.getAllValidMoves();
+    PieceColor activeColor = isMaximizing ? PieceColor::White : PieceColor::Black;
+    auto moves = board.getAllValidMoves(activeColor);
 
     if (isMaximizing) {
         int maxEval = INT_MIN;

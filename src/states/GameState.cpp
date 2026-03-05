@@ -5,14 +5,17 @@
 #include "../core/LayoutManager.hpp"
 #include <iostream>
 
-GameState::GameState(Context& context) : State(context),
-_boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game.board())) {
+GameState::GameState(Context& context, std::unique_ptr<Player> opponent)
+: State(context), _game(std::make_shared<ChessGame>(std::move(opponent), PieceColor::White)),
+_boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
+{
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
     _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
-}
+};
 
 void GameState::init() {
-    _game.addBoardObserver(_boardView);
+    _game->addBoardObserver(_boardView);
+    _game->addBoardObserver(_game);
     _context.textures->load(ui::TextureId::WPawn, "./assets/custom/pieces/WPawn.png");
     _context.textures->load(ui::TextureId::BPawn, "./assets/custom/pieces/BPawn.png");
     _context.textures->load(ui::TextureId::WRook, "./assets/custom/pieces/WRook.png");
@@ -36,36 +39,21 @@ void GameState::init() {
     _context.sounds->load(ui::SoundId::TenSeconds, "./assets/sounds/tenseconds.wav");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
-        if (_game.currentTurn() == _game._botColor) {
-            return false;
+        if (_game->attemptMove(move)) {
+            return true;
         }
-        bool success = _game.attemptMove(move);
-        if (success) {
-            GameStatus status = _game.status();
-            if (status != GameStatus::Active) {
-                if (status == GameStatus::WhiteWon) {
-                    std::cerr << "White won!\n";
-                }
-                else if (status == GameStatus::BlackWon) {
-                    std::cerr << "Black won!\n";
-                }
-                else {
-                    std::cerr << "Draw!";
-                }
-            }
-            else {
-                _game.botMove();
-            }
-        }
-        return success;
+        std::cerr << "Invalid move";
+        return false;
     };
-    _game.reset();
+    _game->reset();
 }
 
 void GameState::handleEvent(const sf::Event& event) {
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
     if (_context.window) {
-        _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+        if (_game->isLocalMove()) {
+            _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+        }
     }
 
     if (event.is<sf::Event::Resized>()) {
@@ -92,6 +80,26 @@ void GameState::update(sf::Time dt) {
     } else if (_context.cursors->arrow) {
         _context.window->setMouseCursor(*(_context.cursors->arrow));
     }
+
+    // TODO
+    GameStatus status = _game->status();
+    if (status != GameStatus::Active) {
+        if (status == GameStatus::WhiteWon) {
+            std::cerr << "White won!\n";
+        }
+        else if (status == GameStatus::BlackWon) {
+            std::cerr << "Black won!\n";
+        }
+        else {
+            std::cerr << "Draw!";
+        }
+        return;
+    }
+    
+    if (!_game->isLocalMove()) {
+        _game->opponentMove();
+    }
+
     _boardView->update(dt);
 }
 

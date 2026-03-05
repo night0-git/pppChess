@@ -8,7 +8,7 @@ class ChessBot {
 public:
     ChessBot(int maxDepth);
 
-    Move getBestMove(Board& board);
+    Move getBestMove(Board& board, PieceColor botColor);
 
 private:
     int _maxDepth = 3;

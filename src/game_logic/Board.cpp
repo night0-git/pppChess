@@ -523,7 +523,9 @@ std::vector<Move> Board::getAllValidMoves(PieceColor color) {
                 std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
                 // Convert to Move objects
                 for (auto& dest : dests) {
-                    allValidMoves.push_back({{x, y}, dest});
+                    Move move = {{x, y}, dest};
+                    if (!isMoveSafe(move)) continue;
+                    allValidMoves.push_back(move);
                 }
             }
         }
@@ -540,7 +542,9 @@ std::vector<Move> Board::getAllValidMoves() {
                 std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
                 // Convert to Move objects
                 for (auto& dest : dests) {
-                    allValidMoves.push_back({{x, y}, dest});
+                    Move move = {{x, y}, dest};
+                    if (!isMoveSafe(move))
+                    allValidMoves.push_back(move);
                 }
             }
         }

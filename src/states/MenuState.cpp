@@ -6,6 +6,7 @@
 #include "../ui/components/Component.hpp"
 #include "../ui/components/Button.hpp"
 #include "../ui/components/Panel.hpp"
+#include "../player/BotPlayer.hpp"
 
 MenuState::MenuState(Context& context) : State(context),
 _menu(_buttonSize, _padding) {
@@ -14,13 +15,13 @@ _menu(_buttonSize, _padding) {
 
     auto play = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY", _font);
     play->setCallback([this]() {
-        _context.states->pushState(std::make_unique<GameState>(_context));
+        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<BotPlayer>(3)));
     });
     _menu.addComponent(std::move(play));
 
     auto playBot = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY BOT", _font);
     playBot->setCallback([this]() {
-        _context.states->pushState(std::make_unique<GameState>(_context));
+        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<BotPlayer>(3)));
     });
     _menu.addComponent(std::move(playBot));
 

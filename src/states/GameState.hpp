@@ -1,14 +1,14 @@
-#ifndef _GAME_STATE_H_
-#define _GAME_STATE_H_
+#ifndef GAME_STATE_HPP
+#define GAME_STATE_HPP
 
 #include "State.hpp"
-#include "../game_logic/ChessGame.hpp"
 #include "../ui/views/BoardView.hpp"
+#include "../game_logic/ChessGame.hpp"
 #include <memory>
 
 class GameState : public State {
 public:
-    explicit GameState(Context& context);
+    explicit GameState(Context& context, std::unique_ptr<Player> opponent);
 
 public:
     void init() override;
@@ -20,7 +20,7 @@ public:
     void resume() override;
 
 private:
-    ChessGame _game;
+    std::shared_ptr<ChessGame> _game;
     std::shared_ptr<ui::BoardView> _boardView;
 };
 
