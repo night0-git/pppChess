@@ -31,11 +31,20 @@ struct MoveResult {
     std::optional<Move> rookMove = std::nullopt;
     bool isCheck = false;
     MoveResult(bool s, Move m, SpecialMove sp) : success(s), move(m), special(sp) {};
+
+    // Since this struct contains unique_ptr, we need to define move semantics
+    MoveResult(MoveResult&& other) noexcept = default;
+    MoveResult& operator=(MoveResult&& other) noexcept = default;
+
+    // And delete copy semantics
+    MoveResult(const MoveResult&) = delete;
+    MoveResult& operator=(const MoveResult&) = delete;
 };
 
 class Board {
 public:
     Board();
+    Board(const Board& other);
 
     MoveResult movePiece(Move move);
     std::unique_ptr<Piece> promote(sf::Vector2i sqr, PieceType type);
@@ -51,10 +60,15 @@ public:
     bool hasLegalMoves(PieceColor color);
     bool insufficientMaterial() const;
     std::vector<Move> getAllValidMoves(PieceColor color);
+    std::vector<Move> getAllValidMoves();
+    bool applyMoveInternal(Move move, std::optional<PieceType> promoteType = std::nullopt);
+    bool undoLastMoveInternal();
 
     // Getters
     const Piece* getPieceAt(sf::Vector2i sqr) const;
     std::optional<sf::Vector2i> enPassantTarget() const;
+    sf::Vector2i whiteKingPos() const;
+    sf::Vector2i blackKingPos() const;
 
     void boardInit();
     void addObserver(std::shared_ptr<BoardObserver> observer);
@@ -75,8 +89,6 @@ private:
     sf::Vector2i _blackKingPos = sf::Vector2i(0, 4);
 
 private:
-    bool applyMoveInternal(Move move, std::optional<PieceType> promoteType = std::nullopt);
-    bool undoLastMoveInternal();
     std::vector<MoveResult> _internalMoves;
 
 private:

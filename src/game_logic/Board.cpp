@@ -6,6 +6,44 @@ Board::Board() {
     setupDefaultBoard();
 }
 
+Board::Board(const Board& other) {
+    for (int row = 0; row < SIZE; row++) {
+        for (int col = 0; col < SIZE; col++) {
+            auto pcs = other.getPieceAt({row, col});
+            if (!pcs) {
+                _grid[row][col] = nullptr;
+                continue;
+            }
+            PieceColor color = pcs->color();
+            switch (pcs->type()) {
+            case PieceType::Pawn:
+                _grid[row][col] = std::make_unique<Pawn>(color);
+                break;
+            case PieceType::Knight:
+                _grid[row][col] = std::make_unique<Knight>(color);
+                break;
+            case PieceType::Bishop:
+                _grid[row][col] = std::make_unique<Bishop>(color);
+                break;
+            case PieceType::Rook:
+                _grid[row][col] = std::make_unique<Rook>(color);
+                break;
+            case PieceType::Queen:
+                _grid[row][col] = std::make_unique<Queen>(color);
+                break;
+            case PieceType::King:
+                _grid[row][col] = std::make_unique<King>(color);
+                break;
+            }
+        }
+    }
+    _enPassantTarget = other._enPassantTarget;
+    _whiteKingPos = other._whiteKingPos;
+    _blackKingPos = other._blackKingPos;
+    _internalMoves.clear();
+    _observers.clear();
+}
+
 MoveResult Board::movePiece(Move move) {
     auto [type, special] = getMoveInfo(move);
     MoveResult moveResult(true, move, special);
@@ -294,6 +332,14 @@ std::optional<sf::Vector2i> Board::enPassantTarget() const {
     return _enPassantTarget;
 }
 
+sf::Vector2i Board::whiteKingPos() const {
+    return _whiteKingPos;
+}
+
+sf::Vector2i Board::blackKingPos() const {
+    return _blackKingPos;
+}
+
 bool Board::isChecked(PieceColor color) const {
     sf::Vector2i kingSqr = color == PieceColor::White ? _whiteKingPos : _blackKingPos;
     // Knight
@@ -477,7 +523,28 @@ std::vector<Move> Board::getAllValidMoves(PieceColor color) {
                 std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
                 // Convert to Move objects
                 for (auto& dest : dests) {
-                    allValidMoves.push_back({{x, y}, dest});
+                    Move move = {{x, y}, dest};
+                    if (!isMoveSafe(move)) continue;
+                    allValidMoves.push_back(move);
+                }
+            }
+        }
+    }
+    return allValidMoves;
+}
+
+std::vector<Move> Board::getAllValidMoves() {
+    std::vector<Move> allValidMoves;
+    for (int x = 0; x < SIZE; x++) {
+        for (int y = 0; y < SIZE; y++) {
+            auto pcs = getPieceAt({x, y});
+            if (pcs) {
+                std::vector<sf::Vector2i> dests = pcs->validMoves(*this, {x, y});
+                // Convert to Move objects
+                for (auto& dest : dests) {
+                    Move move = {{x, y}, dest};
+                    if (!isMoveSafe(move))
+                    allValidMoves.push_back(move);
                 }
             }
         }
@@ -563,12 +630,12 @@ void Board::setupDefaultBoard() {
 }
 
 bool Board::applyMoveInternal(Move move, std::optional<PieceType> promoteType) {
-    auto [type, special] = getMoveInfo(move);
     auto src = getPieceAt(move.src);
     if (!src || !isValidMove(src->color(), move.dest)) {
         return false;
     }
-    
+
+    auto [type, special] = getMoveInfo(move);
     MoveResult result(true, move, special);
 
     result.captured = takePieceAt(move.dest);
