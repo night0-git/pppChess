@@ -45,7 +45,6 @@ class Board {
 public:
     Board();
     Board(const Board& other);
-    Board& operator=(const Board& other);
 
     MoveResult movePiece(Move move);
     std::unique_ptr<Piece> promote(sf::Vector2i sqr, PieceType type);

@@ -13,17 +13,17 @@ _menu(_buttonSize, _padding) {
     sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
     _context.window->setView(sf::View(visibleArea));
 
-    auto play = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY", _font);
-    play->setCallback([this]() {
-        _context.states->pushState(std::make_unique<GameState>(_context));
-    });
-    _menu.addComponent(std::move(play));
-
     auto playBot = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY BOT", _font);
     playBot->setCallback([this]() {
         _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<BotPlayer>(3)));
     });
     _menu.addComponent(std::move(playBot));
+
+    auto playLocal = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY LOCAL", _font);
+    playLocal->setCallback([this]() {
+        _context.states->pushState(std::make_unique<GameState>(_context));
+    });
+    _menu.addComponent(std::move(playLocal));
 
     auto settings = std::make_unique<ui::Button>(_buttonSize, 50, "SETTINGS", _font);
     settings->setCallback([this]() {
