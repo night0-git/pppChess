@@ -68,9 +68,9 @@ void Slider::draw(sf::RenderTarget& target, sf::RenderStates states) const {
     target.draw(_bar, states);
 
     if (_state == State::Pressed || _isCircleHovered) {
-        sf::CircleShape shadow(_circle.getRadius() * 1.8);
+        sf::CircleShape shadow(_circle.getRadius() * 1.5);
         sf::Color shadowColor = _circle.getFillColor();
-        shadowColor.a = 50;
+        shadowColor.a = 40;
         shadow.setFillColor(shadowColor);
         shadow.setOrigin(shadow.getGeometricCenter());
         shadow.setPosition(_circle.getPosition());

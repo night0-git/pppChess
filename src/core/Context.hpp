@@ -33,7 +33,7 @@ struct Cursors {
 };
 
 struct Settings {
-    float masterVolume = 100.f;
+    float masterVolume = 50.f;
     float uiScale = 1.f;
 };
 

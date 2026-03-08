@@ -19,6 +19,7 @@ public:
         });
 
         _activeSounds.emplace_back(sf::Sound(_manager.get(id)));
+        _activeSounds.back().setVolume(_masterVolume);
         _activeSounds.back().play();
     }
 
@@ -29,7 +30,7 @@ public:
 private:
     const ResourceManager<SoundId, sf::SoundBuffer>& _manager;
     std::list<sf::Sound> _activeSounds;
-    float _masterVolume = 100.f;
+    float _masterVolume = 50.f;
 };
 
 }

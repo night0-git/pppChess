@@ -20,7 +20,7 @@ public:
 private:
     sf::Vector2f _unitSize = sf::Vector2f(800, 100);
     float _verticalSpacing = 20;
-    float _horizontalSpacing = 100;
+    float _horizontalSpacing = 70;
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
     sf::Text _title = sf::Text(_font, "SETTINGS", 50);
     ui::VerticalContainer _settingsMenu = ui::VerticalContainer(_unitSize, _verticalSpacing);

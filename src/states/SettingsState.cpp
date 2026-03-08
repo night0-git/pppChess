@@ -9,19 +9,18 @@ SettingsState::SettingsState(Context& context) : State(context) {
     _title.setFillColor(sf::Color::White);
     _title.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _title.getGlobalBounds().size, 100));
 
-    auto _volumeText = std::make_unique<ui::Button>(sf::Vector2f(400, 100), 50, "Volume", _font);
-    _volumeText->setDepthOffset(0);
-    //_volumeText->setBoxColor(sf::Color(30, 30, 30));
-    _volumeText->setBoxColor(sf::Color::Green);
-    _volumeText->setTextColor(sf::Color::White);
+    auto volumeText = std::make_unique<ui::Button>(sf::Vector2f(400, 100), 50, "Volume", _font);
+    volumeText->setDepthOffset(0);
+    volumeText->setBoxColor(sf::Color(30, 30, 30));
+    volumeText->setTextColor(sf::Color::White);
     
-    auto _sliderImg = std::make_unique<ui::Slider>(sf::Vector2f(400, 100), sf::Color::Blue);
+    auto volumeSlider = std::make_unique<ui::Slider>(sf::Vector2f(400, 100), sf::Color(143, 143, 143));
     
-    auto _volume = std::make_unique<ui::HorizontalContainer>(sf::Vector2f((_unitSize.x - _horizontalSpacing) / 2, _unitSize.y), _horizontalSpacing); 
-    _volume->addComponent(std::move(_volumeText));
-    _volume->addComponent(std::move(_sliderImg));
+    auto volume = std::make_unique<ui::HorizontalContainer>(sf::Vector2f((_unitSize.x - _horizontalSpacing) / 2, _unitSize.y), _horizontalSpacing); 
+    volume->addComponent(std::move(volumeText));
+    volume->addComponent(std::move(volumeSlider));
 
-    _settingsMenu.addComponent(std::move(_volume));
+    _settingsMenu.addComponent(std::move(volume));
     _settingsMenu.setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _settingsMenu.getSize()));
 }
 
