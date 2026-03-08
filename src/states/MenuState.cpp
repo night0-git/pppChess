@@ -8,8 +8,7 @@
 #include "../ui/components/Panel.hpp"
 #include "../player/BotPlayer.hpp"
 
-MenuState::MenuState(Context& context) : State(context),
-_menu(_buttonSize, _padding) {
+MenuState::MenuState(Context& context) : State(context) {
     sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
     _context.window->setView(sf::View(visibleArea));
 

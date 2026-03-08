@@ -21,7 +21,7 @@ private:
     sf::Vector2f _buttonSize = sf::Vector2f(400, 100);
     float _padding = 20;
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
-    ui::VerticalContainer _menu;
+    ui::VerticalContainer _menu = ui::VerticalContainer(_buttonSize, _padding);
 };
 
 #endif
