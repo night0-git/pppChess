@@ -20,14 +20,14 @@ int Slider::value() const {
 
 void Slider::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
     sf::FloatRect circleBounds = getTransform().transformRect(_circle.getGlobalBounds());
-    bool isCircleHovered = circleBounds.contains(mouseWorldPos);
+    _isCircleHovered = circleBounds.contains(mouseWorldPos);
     sf::FloatRect barBounds = getTransform().transformRect(_bar.getGlobalBounds());
     bool isBarHovered = barBounds.contains(mouseWorldPos);
-    bool isHovered = isCircleHovered || isBarHovered;
+    bool isHovered = _isCircleHovered || isBarHovered;
 
     if (event.is<sf::Event::MouseButtonPressed>() 
     && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
-        if (isCircleHovered) {
+        if (_isCircleHovered) {
             _state = State::Pressed;
         }
         else if (isBarHovered) {
@@ -67,13 +67,14 @@ void Slider::draw(sf::RenderTarget& target, sf::RenderStates states) const {
 
     target.draw(_bar, states);
 
-    if (_state != State::Idle) {
-        sf::CircleShape shadow(_circle.getRadius() * 1.5);
+    if (_state == State::Pressed || _isCircleHovered) {
+        sf::CircleShape shadow(_circle.getRadius() * 1.8);
         sf::Color shadowColor = _circle.getFillColor();
-        shadowColor.a = 20;
+        shadowColor.a = 50;
         shadow.setFillColor(shadowColor);
         shadow.setOrigin(shadow.getGeometricCenter());
         shadow.setPosition(_circle.getPosition());
+        target.draw(shadow, states);
     }
     target.draw(_circle, states);
 }

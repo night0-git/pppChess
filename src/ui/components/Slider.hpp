@@ -30,6 +30,7 @@ private:
     RoundedRect _bar;
     sf::CircleShape _circle;
 
+    bool _isCircleHovered;
     void updateCirclePos();
 };
 
