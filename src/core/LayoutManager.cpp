@@ -18,7 +18,7 @@ sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elemen
         break;
     case Anchor::Bottom:
         x = (windowSize.x - elementSize.x) / 2;
-        y = windowSize.y - _padding.y;
+        y = windowSize.y - _padding.y - elementSize.y;
         break;
     case Anchor::Left:
         x = _padding.x;
@@ -63,7 +63,7 @@ sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elemen
         break;
     case Anchor::Bottom:
         x = (windowSize.x - elementSize.x) / 2;
-        y = windowSize.y - padding;
+        y = windowSize.y - padding - elementSize.y;
         break;
     case Anchor::Left:
         x = padding;

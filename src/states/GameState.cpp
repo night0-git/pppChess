@@ -127,6 +127,7 @@ void GameState::update(sf::Time dt) {
 }
 
 void GameState::render() {
+    _context.window->clear(sf::Color(30, 30, 30));
     _context.window->draw(*_boardView);
 }
 

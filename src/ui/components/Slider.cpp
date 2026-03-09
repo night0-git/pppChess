@@ -2,8 +2,9 @@
 #include <algorithm>
 using ui::Slider;
 
-Slider::Slider(sf::Vector2f rectSize, sf::Color color, int initialVal)
-: _value(initialVal), _rectSize(rectSize) {
+Slider::Slider(int& value, sf::Vector2f rectSize, sf::Color color, int initialVal)
+: _value(value), _rectSize(rectSize) {
+    _value = std::clamp(_value, _min, _max);
     _bar.setCornerRadius(0);
     _bar.setSize(sf::Vector2f(rectSize.x, _barHeight));
     _bar.setFillColor(sf::Color(235, 231, 223));

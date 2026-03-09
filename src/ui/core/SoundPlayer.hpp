@@ -22,6 +22,10 @@ public:
         _activeSounds.back().setVolume(_masterVolume);
         _activeSounds.back().play();
     }
+    
+    int& masterVolume() {
+        return _masterVolume;
+    }
 
     void setMasterVolumn(float volume) {
         _masterVolume = volume;
@@ -30,7 +34,7 @@ public:
 private:
     const ResourceManager<SoundId, sf::SoundBuffer>& _manager;
     std::list<sf::Sound> _activeSounds;
-    float _masterVolume = 50.f;
+    int _masterVolume = 50.f;
 };
 
 }

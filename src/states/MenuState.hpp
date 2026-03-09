@@ -3,6 +3,7 @@
 
 #include "State.hpp"
 #include "../ui/components/Container.hpp"
+#include "../ui/components/Panel.hpp"
 
 class MenuState : public State {
 public:
@@ -22,6 +23,8 @@ private:
     float _padding = 20;
     sf::Font _font = sf::Font("./assets/fonts/Open_Sans/static/OpenSans-Regular.ttf");
     ui::VerticalContainer _menu = ui::VerticalContainer(_buttonSize, _padding);
+    sf::Texture _bannerTexture = sf::Texture("./assets/pppbanner.png");
+    ui::Panel _banner = ui::Panel(_bannerTexture);
 };
 
 #endif

@@ -8,7 +8,7 @@ namespace ui {
 
 class Slider : public Component {
 public:
-    Slider(sf::Vector2f rectSize, sf::Color color, int initialVal = 50);
+    Slider(int& value, sf::Vector2f rectSize, sf::Color color, int initialVal = 50);
     
     int value() const;
 
@@ -23,7 +23,7 @@ public:
 private:
     int _min = 0;
     int _max = 100;
-    int _value;
+    int& _value;
     
     sf::Vector2f _rectSize;
     float _barHeight = 15;

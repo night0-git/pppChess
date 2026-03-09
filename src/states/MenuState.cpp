@@ -11,6 +11,9 @@
 MenuState::MenuState(Context& context) : State(context) {
     sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
     _context.window->setView(sf::View(visibleArea));
+    
+    _banner.setSize(sf::Vector2f(_banner.getSize().x * 0.3, _banner.getSize().y * 0.3));
+    _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
 
     auto playBot = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY BOT", _font);
     playBot->setCallback([this]() {
@@ -34,7 +37,7 @@ MenuState::MenuState(Context& context) : State(context) {
     quit->setCallback([this]() { _context.window->close(); });
     _menu.addComponent(std::move(quit));
 
-    _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _menu.getSize()));
+    _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Bottom, _menu.getSize(), 200));
 }
 
 void MenuState::init() {
@@ -42,10 +45,12 @@ void MenuState::init() {
 }
 
 void MenuState::handleEvent(const sf::Event& event) {
+    // Keep the position correct when window is resized
     if (event.is<sf::Event::Resized>()) {
         sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
         _context.window->setView(sf::View(visibleArea));
-        _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _menu.getSize()));
+        _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
+        _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Bottom, _menu.getSize(), 200));
     }
 
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
@@ -68,6 +73,7 @@ void MenuState::update(sf::Time dt) {
 
 void MenuState::render() {
     _context.window->clear(sf::Color(30, 30, 30));
+    _context.window->draw(_banner);
     _context.window->draw(_menu);
 }
 

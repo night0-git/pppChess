@@ -7,6 +7,9 @@ CMakeUserPresets.json
 # VS Code
 .vscode/
 
+# Zed
+.zed/
+
 # Executables
 *.exe
 
