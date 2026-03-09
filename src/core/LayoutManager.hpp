@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 
 enum class Anchor {
-    Left, Right, TopLeft, BottomLeft,
+    Top, Bottom, Left, Right, TopLeft, BottomLeft,
     TopRight, BottomRight, Center
 };
 
@@ -14,6 +14,7 @@ public:
 
     void setPadding(sf::Vector2f padding);
     sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize) const;
+    sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize, float padding) const;
 
 private:
     sf::Vector2f _padding;
