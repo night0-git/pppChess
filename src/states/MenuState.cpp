@@ -15,6 +15,14 @@ MenuState::MenuState(Context& context) : State(context) {
     _banner.setSize(sf::Vector2f(_banner.getSize().x * 0.3, _banner.getSize().y * 0.3));
     _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
 
+    /*
+    auto playOnline = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY ONLINE", _font);
+    playOnline->setCallback([this]() {
+        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<RemotePlayer>()));
+    });
+    _menu.addComponent(std::move(playOnline));
+    */
+
     auto playBot = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY BOT", _font);
     playBot->setCallback([this]() {
         _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<BotPlayer>(3)));

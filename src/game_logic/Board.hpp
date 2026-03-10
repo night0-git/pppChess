@@ -9,15 +9,27 @@
 #include <vector>
 #include <utility>
 #include <string>
+#include <SFML/Network.hpp>
 
 struct Move {
     sf::Vector2i src;
     sf::Vector2i dest;
     Move(sf::Vector2i s, sf::Vector2i d) : src(s), dest(d) {};
+    Move() : src({0, 0}), dest({0, 0}) {};
     bool operator==(const Move& other) const {
         return src == other.src && dest == other.dest;
     }
 };
+
+// Packet to move
+inline sf::Packet& operator<<(sf::Packet& packet, const Move& move) {
+    return packet << move.src.x << move.src.y << move.dest.x << move.dest.y;
+}
+
+// Move to packet
+inline sf::Packet& operator>>(sf::Packet& packet, Move& move) {
+    return packet >> move.src.x >> move.src.y >> move.dest.x >> move.dest.y;
+}
 
 enum class MoveType { Move, Capture, Invalid };
 enum class SpecialMove { Castle, Promote, EnPassant, Illegal, None };

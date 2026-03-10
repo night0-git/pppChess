@@ -9,6 +9,10 @@ ChessGame::ChessGame(PieceColor localColor)
 ChessGame::ChessGame(std::unique_ptr<Player> opponent, PieceColor localColor)
 : _opponent(std::move(opponent)), _isLocalMove(localColor == PieceColor::White) {}
 
+Player* ChessGame::opponent() {
+    return _opponent.get();
+}
+
 void ChessGame::opponentMove() {
     auto move = _opponent->getMove(_board, _currentTurn);
     
@@ -34,8 +38,12 @@ bool ChessGame::isLocalMove() const {
     return _isLocalMove;
 }
 
-bool ChessGame::isLocalOpponent() const {
-    return !_opponent;
+std::optional<std::type_index> ChessGame::nonLocalOpponent() const {
+    if (!_opponent) {
+        return std::nullopt;
+    }
+    
+    return std::type_index(typeid(*_opponent));
 }
 
 void ChessGame::changeTurn() {
