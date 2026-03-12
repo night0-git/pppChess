@@ -18,6 +18,7 @@ public:
 
     Player* opponent();
     void opponentMove();
+    void changeLocalColor();
 
     GameStatus status() const;
     PieceColor currentTurn() const;

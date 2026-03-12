@@ -33,6 +33,9 @@ private:
     sf::Clock _clock;
     Cursors _cursors;
     Settings _settings;
+    
+    sf::TcpSocket _socket;
+    sf::TcpListener _listener;
 
     Context _context;
 };

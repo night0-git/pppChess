@@ -23,9 +23,19 @@ _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundP
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
     _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
     if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
-        _listener.setBlocking(false);
-        if (_listener.listen(5000) != sf::Socket::Status::Done) {
-            throw std::runtime_error("Cannot connect to port 5000.");
+        _context.socket->setBlocking(true);
+        _context.listener->setBlocking(false);
+        // Start the listener if there is no listener to connect to yet
+        if (_context.socket->connect(sf::IpAddress::resolve("127.0.0.1").value(), 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
+            _isFirstOnlinePlayer = true;
+            if (_context.listener->listen(5000) != sf::Socket::Status::Done) {
+                throw std::runtime_error("Cannot connect to port 5000.");
+            }
+        }
+        else {
+            _connectionEstablished = true;
+            // Change color because the first player claimed the default color already
+            _game->changeLocalColor();
         }
     }
 };
@@ -65,8 +75,8 @@ void GameState::init() {
         if (_game->attemptMove(move)) {
             sf::Packet packet;
             packet << move;
-            // This will block the program, may consider making _sender non blocking
-            _sender.send(packet) == sf::Socket::Status::Done;
+            // This will block the program, may consider making _socket non blocking
+            _context.socket->send(packet) == sf::Socket::Status::Done;
             return true;
         }
         return false;
@@ -79,7 +89,9 @@ void GameState::handleEvent(const sf::Event& event) {
     if (_context.window) {
         // Local player to move
         if (_game->isLocalMove() || !_game->nonLocalOpponent()) {
-            _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+            if (_game->nonLocalOpponent() != std::type_index(typeid(RemotePlayer)) || _connectionEstablished) {
+                _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+            }
         }
     }
 
@@ -109,18 +121,22 @@ void GameState::update(sf::Time dt) {
     }
     
     // Try to establish a connection in multiplayer mode
-    if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
-        // Check if there is already a connection, and establish one if no
-        if (!_sender.getRemoteAddress()) {
-            std::cout << "Listening...";
-            if (_listener.accept(_sender) == sf::Socket::Status::Done) {
-                _sender.setBlocking(false);
+    if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer)) && !_connectionEstablished) {
+        if (_isFirstOnlinePlayer) {
+            std::cerr << "Listening for connection...";
+            if (_context.listener->accept(*(_context.socket)) == sf::Socket::Status::Done) {
                 std::cout << "Found opponent!";
-            }
-            else if (_sender.connect(sf::IpAddress::resolve("127.0.0.1").value(), 5000) == sf::Socket::Status::Done) {
-                _listener.close();
+                _connectionEstablished = true;
+                _context.listener->close();
             }
         }
+        else if (_context.socket->connect(sf::IpAddress::resolve("127.0.0.1").value(), 5000) == sf::Socket::Status::Done) {
+            _connectionEstablished = true;
+        }
+    }
+    
+    if (_connectionEstablished && !_context.socket->isBlocking()) {
+        _context.socket->setBlocking(true);
     }
 
     // Non local player to move

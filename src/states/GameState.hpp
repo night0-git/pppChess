@@ -31,8 +31,8 @@ private:
     std::atomic<bool> _isOpponentThinking = false;
     std::thread _opponentThread;
     
-    sf::TcpSocket _sender;
-    sf::TcpListener _listener;
+    bool _isFirstOnlinePlayer;
+    bool _connectionEstablished = false;
 };
 
 #endif

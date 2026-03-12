@@ -14,16 +14,21 @@ Player* ChessGame::opponent() {
 }
 
 void ChessGame::opponentMove() {
+    auto start = std::chrono::steady_clock::now();
     auto move = _opponent->getMove(_board, _currentTurn);
-    
+
     if (move.has_value()) {
-        // Trying to delay the move until the animation is finished
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // Ensure the the animation has finished
+        std::this_thread::sleep_until(start + std::chrono::milliseconds(200));
+
         if (!attemptMove(move.value())) {
-            std::cerr << "Bot made an invalid move.";
-            _status = GameStatus::WhiteWon;
+            std::cerr << "Opponent made an invalid move.";
         }
     }
+}
+
+void ChessGame::changeLocalColor() {
+    _isLocalMove = !_isLocalMove;
 }
 
 GameStatus ChessGame::status() const {

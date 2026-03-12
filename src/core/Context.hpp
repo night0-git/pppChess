@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <SFML/Network.hpp>
 #include <string>
 #include <iostream>
 
@@ -47,6 +48,8 @@ struct Context {
     sf::Clock* clock;
     Settings* settings;
     Cursors* cursors;
+    sf::TcpSocket *socket;
+    sf::TcpListener *listener;
 };
 
 #endif
