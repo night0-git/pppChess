@@ -1,6 +1,7 @@
 #include "PieceView.hpp"
 #include <utility>
 #include <map>
+#include <iostream>
 using std::map, std::pair;
 using ui::PieceView;
 
@@ -8,9 +9,10 @@ PieceView::PieceView(const sf::Texture& texture, float tileSize,
 const Piece& piece) : _sprite(texture), _tileSize(tileSize),
 _piece(&piece) {
     normalizeSprite();
+    std::cerr << getOrigin().x << " " << getOrigin().y << "\n";
 }
 
-void PieceView::snapToPosition(sf::Vector2i sqr) {
+void PieceView::snapToSquare(sf::Vector2i sqr) {
     this->setPosition(sqrToPos(sqr));
 }
 
@@ -54,11 +56,9 @@ void PieceView::normalizeSprite() {
     float scale = targetSize / static_cast<float>(textureSize.y);
     _sprite.setScale({scale, scale});
 
-    // Set position
     _sprite.setOrigin({textureSize.x / 2.f, textureSize.y / 2.f});
-    _sprite.setPosition({_tileSize / 2.f, _tileSize / 2.f});
 }
 
 sf::Vector2f PieceView::sqrToPos(sf::Vector2i sqr) const {
-    return sf::Vector2f(sqr.y * _tileSize, sqr.x * _tileSize);
+    return sf::Vector2f((sqr.y + 0.5) * _tileSize, (sqr.x + 0.5) * _tileSize);
 }

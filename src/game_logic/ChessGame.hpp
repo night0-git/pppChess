@@ -5,6 +5,9 @@
 #include "../player/Player.hpp"
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <optional>
+#include <typeindex>
+#include <typeinfo>
 
 enum class GameStatus { Active, WhiteWon, BlackWon, Draw };
 
@@ -13,12 +16,15 @@ public:
     ChessGame(PieceColor localColor);
     ChessGame(std::unique_ptr<Player> opponent, PieceColor localColor);
 
+    Player* opponent();
     void opponentMove();
+    void changeLocalColor();
 
     GameStatus status() const;
     PieceColor currentTurn() const;
     bool isLocalMove() const;
-    bool isLocalOpponent() const;
+    // This will return nullopt if opponent is local
+    std::optional<std::type_index> nonLocalOpponent() const;
     void changeTurn();
 
     void reset();

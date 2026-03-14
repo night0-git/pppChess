@@ -12,7 +12,7 @@ class PieceView : public sf::Drawable, public sf::Transformable {
 public:
     PieceView(const sf::Texture& texture, float tileSize, const Piece& piece);
     
-    void snapToPosition(sf::Vector2i sqr);
+    void snapToSquare(sf::Vector2i sqr);
     void animateToPosition(sf::Vector2i sqr);
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;

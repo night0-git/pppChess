@@ -7,6 +7,7 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <SFML/Network.hpp>
 
 class GameState : public State {
 public:
@@ -29,6 +30,9 @@ private:
 
     std::atomic<bool> _isOpponentThinking = false;
     std::thread _opponentThread;
+    
+    bool _isFirstOnlinePlayer;
+    bool _connectionEstablished = false;
 };
 
 #endif

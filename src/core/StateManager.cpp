@@ -38,7 +38,7 @@ void StateManager::processStateChanges() {
             }
         }
         _states.push(std::move(_newState));
-        _states.top()->init();
+        // _states.top()->init();
         _isAdding = false;
     }
 }

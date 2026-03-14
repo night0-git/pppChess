@@ -3,22 +3,49 @@
 #include "SettingsState.hpp"
 #include "../core/StateManager.hpp"
 #include "../core/LayoutManager.hpp"
+#include "../player/RemotePlayer.hpp"
+#include "../player/BotPlayer.hpp"
+#include "../game_logic/Board.hpp"
 #include <iostream>
 
 GameState::GameState(Context& context)
 : State(context), _game(std::make_shared<ChessGame>(PieceColor::White)),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
 {
+    // Because setSize() does not yet manage pieceviews so we call it first
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
-    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    init();
 };
 
 GameState::GameState(Context& context, std::unique_ptr<Player> opponent)
 : State(context), _game(std::make_shared<ChessGame>(std::move(opponent), PieceColor::White)),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
 {
+    // Because setSize() does not yet manage pieceviews so we call it first
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
-    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    init();
+
+    // Start connection for online mode
+    if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
+        _context.socket->setBlocking(true);
+        _context.listener->setBlocking(false);
+        // Start the listener if there is no listener to connect to yet
+        if (_context.socket->connect(sf::IpAddress::LocalHost, 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
+            _isFirstOnlinePlayer = true;
+            if (_context.listener->listen(5000) != sf::Socket::Status::Done) {
+                throw std::runtime_error("Cannot connect to port 5000.");
+            }
+        }
+        else {
+            _connectionEstablished = true;
+            // Change color because the first player claimed the default color already
+            _game->changeLocalColor();
+
+            _boardView->flip();
+        }
+    }
 };
 
 GameState::~GameState() {
@@ -54,25 +81,37 @@ void GameState::init() {
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
         if (_game->attemptMove(move)) {
+            sf::Packet packet;
+            packet << move;
+            // This will block the program, may consider making _socket non blocking
+            _context.socket->send(packet) == sf::Socket::Status::Done;
             return true;
         }
         return false;
     };
+    // This call will start connecting _boardView to _board
     _game->reset();
 }
 
 void GameState::handleEvent(const sf::Event& event) {
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
     if (_context.window) {
-        if (_game->isLocalMove() || _game->isLocalOpponent()) {
+        // Local player to move
+        if (_game->isLocalMove() || !_game->nonLocalOpponent()) {
+            bool wasLocalMove = _game->isLocalMove();
             _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+            
+            // Rotate the board if a valid move has been made
+            if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
+                _boardView->flip();
+            }
         }
     }
 
     if (event.is<sf::Event::Resized>()) {
         sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
         _context.window->setView(sf::View(visibleArea));
-        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
     }
 
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
@@ -93,6 +132,40 @@ void GameState::update(sf::Time dt) {
     } else if (_context.cursors->arrow) {
         _context.window->setMouseCursor(*(_context.cursors->arrow));
     }
+    
+    // Try to establish a connection in multiplayer mode
+    if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer)) && !_connectionEstablished) {
+        if (_isFirstOnlinePlayer) {
+            std::cerr << "Listening for connection...";
+            if (_context.listener->accept(*(_context.socket)) == sf::Socket::Status::Done) {
+                std::cout << "Found opponent!\n";
+                _connectionEstablished = true;
+                _context.listener->close();
+            }
+        }
+        else if (_context.socket->connect(sf::IpAddress::LocalHost, 5000) == sf::Socket::Status::Done) {
+            _connectionEstablished = true;
+        }
+    }
+    
+    if (_connectionEstablished && !_context.socket->isBlocking()) {
+        _context.socket->setBlocking(true);
+    }
+
+    // Non local player to move
+    if (!_game->isLocalMove() && !_isOpponentThinking && _game->nonLocalOpponent()) {
+        _isOpponentThinking = true;
+
+        // Join the previous turn before joining the new one
+        if (_opponentThread.joinable()) {
+            _opponentThread.join();
+        }
+        
+        _opponentThread = std::thread([this]() {
+            _game->opponentMove();
+            _isOpponentThinking = false;
+        });
+    }
 
     // TODO
     GameStatus status = _game->status();
@@ -109,19 +182,6 @@ void GameState::update(sf::Time dt) {
         return;
     }
     
-    if (!_game->isLocalMove() && !_isOpponentThinking && !_game->isLocalOpponent()) {
-        _isOpponentThinking = true;
-
-        // Join the previous turn before joining the new one
-        if (_opponentThread.joinable()) {
-            _opponentThread.join();
-        }
-        
-        _opponentThread = std::thread([this]() {
-            _game->opponentMove();
-            _isOpponentThinking = false;
-        });
-    }
 
     _boardView->update(dt);
 }

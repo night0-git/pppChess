@@ -7,7 +7,7 @@ void LayoutManager::setPadding(sf::Vector2f padding) {
     _padding = padding;
 }
 
-sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elementSize) const {
+sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elementSize, sf::Vector2f origin) const {
     float x = 0;
     float y = 0;
     sf::Vector2f windowSize = sf::Vector2f(_window.getSize());
@@ -49,10 +49,11 @@ sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elemen
         y = (windowSize.y - elementSize.y) / 2;
         break;    
     }
-    return {x, y};
+    sf::Vector2f pos = sf::Vector2f(x, y) + origin;
+    return pos;
 }
 
-sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elementSize, float padding) const {
+sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elementSize, float padding, sf::Vector2f origin) const {
     float x = 0;
     float y = 0;
     sf::Vector2f windowSize = sf::Vector2f(_window.getSize());
@@ -94,5 +95,6 @@ sf::Vector2f LayoutManager::calculatePosition(Anchor anchor, sf::Vector2f elemen
         y = (windowSize.y - elementSize.y) / 2;
         break;    
     }
-    return {x, y};
+    sf::Vector2f pos = sf::Vector2f(x, y) + origin;
+    return pos;
 }

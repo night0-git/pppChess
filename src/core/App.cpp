@@ -19,6 +19,8 @@ App::App() : _soundPlayer(_sounds), _layoutManager(_window, sf::Vector2f(30, 30)
     _context.clock = &_clock;
     _context.settings = &_settings;
     _context.cursors = &_cursors;
+    _context.socket = &_socket;
+    _context.listener = &_listener;
 
     _states.pushState(std::make_unique<MenuState>(_context));
 }

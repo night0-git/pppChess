@@ -10,8 +10,9 @@ std::optional<Move> RemotePlayer::getMove(Board& board, PieceColor color) {
     sf::Socket::Status status = _socket.receive(packet);
 
     if (status == sf::Socket::Status::Done) {
-        // Deserialize packet into move
-        //return receivedMove;
+        Move move;
+        packet >> move;
+        return move;
     }
 
     return std::nullopt;
