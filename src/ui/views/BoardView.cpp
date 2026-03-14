@@ -4,11 +4,13 @@
 using ui::BoardView;
 
 BoardView::BoardView(const ResourceManager<TextureId, sf::Texture>& textures, SoundPlayer& sounds, const Board& board)
-: _textures(textures), _sounds(sounds), _board(board) {}
+: _textures(textures), _sounds(sounds), _board(board) {
+    // Set origin the the center
+    setOrigin({getSize().x / 2, getSize().y / 2});
+}
 
 void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) {
     sf::Vector2f localPos = getTransform().getInverse().transformPoint(mouseWorldPos);
-    auto dragOffset = sf::Vector2f(-_theme.tileSize / 2.f, -_theme.tileSize / 2.f);
 
     const sf::Vector2i sqr = localPosToSqr(localPos);
     bool isHovered = _board.isWithinBoard(sqr) && _board.getPieceAt(sqr);
@@ -35,7 +37,7 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
             if (pcs) {
                 _selectedSqr = sqr;
                 _draggedPiece = pcs;
-                _pieceViews.at(pcs).setPosition(localPos + dragOffset);
+                _pieceViews.at(pcs).setPosition(localPos);
             }
             else if (_selectedSqr) {
                 _selectedSqr = std::nullopt;
@@ -45,7 +47,7 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
 
     else if (event.is<sf::Event::MouseMoved>()) {
         if (_draggedPiece) {
-            _pieceViews.at(_draggedPiece).setPosition(localPos + dragOffset);
+            _pieceViews.at(_draggedPiece).setPosition(localPos);
         }
     }
 
@@ -56,7 +58,7 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
         if (_draggedPiece && _selectedSqr) {
             // Check piece deselection
             if (*_selectedSqr == sqr && _isDeselecting) {
-                _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
+                _pieceViews.at(_draggedPiece).snapToSquare(*_selectedSqr);
                 _selectedSqr = std::nullopt;
                 _isDeselecting = false;
             }
@@ -64,7 +66,7 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
                 bool moved = _onMoveRequest && _onMoveRequest({*_selectedSqr, sqr});
                 if (!moved) {
                     // Snap back
-                    _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
+                    _pieceViews.at(_draggedPiece).snapToSquare(*_selectedSqr);
                 }
                 else {
                     _selectedSqr = std::nullopt;
@@ -78,7 +80,7 @@ void BoardView::handleEvent(const sf::Event& event, const sf::RenderWindow& wind
 
     else if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Right) {
         if (_selectedSqr && _draggedPiece) {
-            _pieceViews.at(_draggedPiece).snapToPosition(*_selectedSqr);
+            _pieceViews.at(_draggedPiece).snapToSquare(*_selectedSqr);
             _isMoving = false;
             _draggedPiece = nullptr;
             _selectedSqr = std::nullopt;
@@ -106,8 +108,17 @@ sf::Vector2f BoardView::getSize() const {
 
 void BoardView::setSize(sf::Vector2f size) {
     _theme.tileSize = size.x / Board::SIZE;
+    // Set board origin the the center
+    setOrigin({getSize().x / 2, getSize().y / 2});
     for (auto& [piece, view] : _pieceViews) {
         view.normalizeSprite();
+    }
+}
+
+void BoardView::flip() {
+    rotate(sf::degrees(180));
+    for (auto& [pcs, pcsView] : _pieceViews) {
+        pcsView.rotate(sf::degrees(180));
     }
 }
 
@@ -122,7 +133,7 @@ void BoardView::onBoardInit() {
                 _pieceViews.emplace(std::piecewise_construct,
                                     std::forward_as_tuple(pcs),
                                     std::forward_as_tuple(texture, _theme.tileSize, *pcs));
-                _pieceViews.at(pcs).snapToPosition({x, y});
+                _pieceViews.at(pcs).snapToSquare({x, y});
             }
         }
     }
@@ -149,8 +160,12 @@ void BoardView::onMoveEvent(const MoveResult& result) {
         if (pcs) {
             const sf::Texture& texture = _textures.get(ui::getPieceId(*pcs));
             PieceView pcsView(texture, _theme.tileSize, *pcs);
-            pcsView.snapToPosition(result.move.dest);
+            pcsView.snapToSquare(result.move.dest);
             _pieceViews.insert_or_assign(pcs, pcsView);
+            // Make sure the newly created piece is rotated correctly
+            if (getRotation() == sf::degrees(180)) {
+                _pieceViews.at(pcs).rotate(sf::degrees(180));
+            }
         }
     }
 
@@ -186,7 +201,7 @@ void BoardView::movePieceView(Move move) {
             _pieceViews.at(pcs).animateToPosition(move.dest);
             _isMoving = false;
         } else {
-            _pieceViews.at(pcs).snapToPosition(move.dest);
+            _pieceViews.at(pcs).snapToSquare(move.dest);
         }
     }
 }

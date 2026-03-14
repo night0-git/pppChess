@@ -13,8 +13,8 @@ public:
     LayoutManager(const sf::RenderWindow& window, sf::Vector2f padding);
 
     void setPadding(sf::Vector2f padding);
-    sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize) const;
-    sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize, float padding) const;
+    sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize, sf::Vector2f origin = {0, 0}) const;
+    sf::Vector2f calculatePosition(Anchor anchor, sf::Vector2f elementSize, float padding, sf::Vector2f origin = {0, 0}) const;
 
 private:
     sf::Vector2f _padding;

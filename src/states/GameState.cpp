@@ -12,21 +12,27 @@ GameState::GameState(Context& context)
 : State(context), _game(std::make_shared<ChessGame>(PieceColor::White)),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
 {
+    // Because setSize() does not yet manage pieceviews so we call it first
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
-    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    init();
 };
 
 GameState::GameState(Context& context, std::unique_ptr<Player> opponent)
 : State(context), _game(std::make_shared<ChessGame>(std::move(opponent), PieceColor::White)),
 _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundPlayer), _game->board()))
 {
+    // Because setSize() does not yet manage pieceviews so we call it first
     _boardView->setSize({_context.window->getSize().y * 0.85f, _context.window->getSize().y * 0.85f});
-    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+    _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    init();
+
+    // Start connection for online mode
     if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
         _context.socket->setBlocking(true);
         _context.listener->setBlocking(false);
         // Start the listener if there is no listener to connect to yet
-        if (_context.socket->connect(sf::IpAddress::resolve("127.0.0.1").value(), 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
+        if (_context.socket->connect(sf::IpAddress::LocalHost, 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
             _isFirstOnlinePlayer = true;
             if (_context.listener->listen(5000) != sf::Socket::Status::Done) {
                 throw std::runtime_error("Cannot connect to port 5000.");
@@ -36,6 +42,8 @@ _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundP
             _connectionEstablished = true;
             // Change color because the first player claimed the default color already
             _game->changeLocalColor();
+
+            _boardView->flip();
         }
     }
 };
@@ -81,6 +89,7 @@ void GameState::init() {
         }
         return false;
     };
+    // This call will start connecting _boardView to _board
     _game->reset();
 }
 
@@ -89,8 +98,12 @@ void GameState::handleEvent(const sf::Event& event) {
     if (_context.window) {
         // Local player to move
         if (_game->isLocalMove() || !_game->nonLocalOpponent()) {
-            if (_game->nonLocalOpponent() != std::type_index(typeid(RemotePlayer)) || _connectionEstablished) {
-                _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+            bool wasLocalMove = _game->isLocalMove();
+            _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+            
+            // Rotate the board if a valid move has been made
+            if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
+                _boardView->flip();
             }
         }
     }
@@ -98,7 +111,7 @@ void GameState::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Resized>()) {
         sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
         _context.window->setView(sf::View(visibleArea));
-        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Left, _boardView->getSize()));
+        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
     }
 
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
@@ -125,12 +138,12 @@ void GameState::update(sf::Time dt) {
         if (_isFirstOnlinePlayer) {
             std::cerr << "Listening for connection...";
             if (_context.listener->accept(*(_context.socket)) == sf::Socket::Status::Done) {
-                std::cout << "Found opponent!";
+                std::cout << "Found opponent!\n";
                 _connectionEstablished = true;
                 _context.listener->close();
             }
         }
-        else if (_context.socket->connect(sf::IpAddress::resolve("127.0.0.1").value(), 5000) == sf::Socket::Status::Done) {
+        else if (_context.socket->connect(sf::IpAddress::LocalHost, 5000) == sf::Socket::Status::Done) {
             _connectionEstablished = true;
         }
     }

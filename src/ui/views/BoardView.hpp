@@ -30,6 +30,7 @@ public:
     std::function<bool(Move move)> _onMoveRequest;
     sf::Vector2f getSize() const override;
     void setSize(sf::Vector2f size) override;
+    void flip();
 
 public:
     void onBoardInit() override;
