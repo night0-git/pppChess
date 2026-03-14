@@ -148,6 +148,8 @@ void BoardView::onMoveEvent(const MoveResult& result) {
         return;
     }
 
+    _latestMove = result.move;
+
     // Delete old pieceview
     if (result.captured) {
         _pieceViews.erase(result.captured.get());
@@ -188,8 +190,6 @@ void BoardView::onMoveEvent(const MoveResult& result) {
     } else if (result.special == SpecialMove::Promote) {
         _sounds.play(ui::SoundId::Promote);
     }
-    
-    _latestMove = result.move;
 }
 
 void BoardView::onPromoteSelection(sf::Vector2i sqr, PieceType& type) {
