@@ -89,11 +89,13 @@ void GameState::init() {
             return false;
         }
         if (_game->attemptMove(move)) {
-            sf::Packet packet;
-            packet << move;
-            // This will block the program, may consider making _socket non blocking
-            if (_context.socket->send(packet) != sf::Socket::Status::Done) {
-                std::cerr << "Cannot send packet.";
+            if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
+                sf::Packet packet;
+                packet << move;
+                // This will block the program, may consider making _socket non blocking
+                if (_context.socket->send(packet) != sf::Socket::Status::Done) {
+                    std::cerr << "Cannot send packet.";
+                }
             }
             return true;
         }
@@ -131,6 +133,7 @@ void GameState::handleEvent(const sf::Event& event) {
 }
 
 void GameState::update(sf::Time dt) {
+    // Handle mouse cursor
     if (_boardView->getState() == ui::State::Hovered && _context.cursors->handOpened) {
         _context.window->setMouseCursor(*(_context.cursors->handOpened));
     } else if (_boardView->getState() == ui::State::Pressed && _context.cursors->handClosed) {
@@ -173,23 +176,21 @@ void GameState::update(sf::Time dt) {
         });
     }
 
+    _boardView->update(dt);
+
     // TODO
     GameStatus status = _game->status();
     if (status != GameStatus::Active) {
         if (status == GameStatus::WhiteWon) {
-            std::cerr << "White won!\n";
+            std::cerr << "White won!";
         }
         else if (status == GameStatus::BlackWon) {
-            std::cerr << "Black won!\n";
+            std::cerr << "Black won!";
         }
         else {
             std::cerr << "Draw!";
         }
-        return;
     }
-    
-
-    _boardView->update(dt);
 }
 
 void GameState::render() {
