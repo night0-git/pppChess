@@ -80,7 +80,10 @@ void GameState::init() {
     _context.sounds->load(ui::SoundId::TenSeconds, "./assets/sounds/tenseconds.wav");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
-        // This makes the player interact with the board without
+        if (_game->status() != GameStatus::Active) {
+            return false;
+        }
+        // This allows the player interact with the board without
         // making a move if it's not their turn in non local mode
         if (_game->nonLocalOpponent() && !_game->isLocalMove()) {
             return false;
@@ -101,6 +104,13 @@ void GameState::init() {
 }
 
 void GameState::handleEvent(const sf::Event& event) {
+    // Manage layout
+    if (event.is<sf::Event::Resized>()) {
+        sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
+        _context.window->setView(sf::View(visibleArea));
+        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    }
+
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
 
     bool wasLocalMove = _game->isLocalMove();
@@ -108,12 +118,6 @@ void GameState::handleEvent(const sf::Event& event) {
     // Rotate the board if a valid move has been made
     if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
         _boardView->flip();
-    }
-
-    if (event.is<sf::Event::Resized>()) {
-        sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
-        _context.window->setView(sf::View(visibleArea));
-        _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
     }
 
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
