@@ -80,11 +80,18 @@ void GameState::init() {
     _context.sounds->load(ui::SoundId::TenSeconds, "./assets/sounds/tenseconds.wav");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
+        // This makes the player interact with the board without
+        // making a move if it's not their turn in non local mode
+        if (_game->nonLocalOpponent() && !_game->isLocalMove()) {
+            return false;
+        }
         if (_game->attemptMove(move)) {
             sf::Packet packet;
             packet << move;
             // This will block the program, may consider making _socket non blocking
-            _context.socket->send(packet) == sf::Socket::Status::Done;
+            if (_context.socket->send(packet) != sf::Socket::Status::Done) {
+                std::cerr << "Cannot send packet.";
+            }
             return true;
         }
         return false;
@@ -95,17 +102,12 @@ void GameState::init() {
 
 void GameState::handleEvent(const sf::Event& event) {
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
-    if (_context.window) {
-        // Local player to move
-        if (_game->isLocalMove() || !_game->nonLocalOpponent()) {
-            bool wasLocalMove = _game->isLocalMove();
-            _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
-            
-            // Rotate the board if a valid move has been made
-            if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
-                _boardView->flip();
-            }
-        }
+
+    bool wasLocalMove = _game->isLocalMove();
+    _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+    // Rotate the board if a valid move has been made
+    if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
+        _boardView->flip();
     }
 
     if (event.is<sf::Event::Resized>()) {

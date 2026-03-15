@@ -9,7 +9,6 @@ PieceView::PieceView(const sf::Texture& texture, float tileSize,
 const Piece& piece) : _sprite(texture), _tileSize(tileSize),
 _piece(&piece) {
     normalizeSprite();
-    std::cerr << getOrigin().x << " " << getOrigin().y << "\n";
 }
 
 void PieceView::snapToSquare(sf::Vector2i sqr) {
