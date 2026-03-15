@@ -80,11 +80,23 @@ void GameState::init() {
     _context.sounds->load(ui::SoundId::TenSeconds, "./assets/sounds/tenseconds.wav");
     // Connect to _boardView's hook 
     _boardView->_onMoveRequest = [this](const Move& move) {
+        if (_game->status() != GameStatus::Active) {
+            return false;
+        }
+        // This allows the player interact with the board without
+        // making a move if it's not their turn in non local mode
+        if (_game->nonLocalOpponent() && !_game->isLocalMove()) {
+            return false;
+        }
         if (_game->attemptMove(move)) {
-            sf::Packet packet;
-            packet << move;
-            // This will block the program, may consider making _socket non blocking
-            _context.socket->send(packet) == sf::Socket::Status::Done;
+            if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
+                sf::Packet packet;
+                packet << move;
+                // This will block the program, may consider making _socket non blocking
+                if (_context.socket->send(packet) != sf::Socket::Status::Done) {
+                    std::cerr << "Cannot send packet.";
+                }
+            }
             return true;
         }
         return false;
@@ -94,24 +106,20 @@ void GameState::init() {
 }
 
 void GameState::handleEvent(const sf::Event& event) {
-    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
-    if (_context.window) {
-        // Local player to move
-        if (_game->isLocalMove() || !_game->nonLocalOpponent()) {
-            bool wasLocalMove = _game->isLocalMove();
-            _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
-            
-            // Rotate the board if a valid move has been made
-            if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
-                _boardView->flip();
-            }
-        }
-    }
-
+    // Manage layout
     if (event.is<sf::Event::Resized>()) {
         sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
         _context.window->setView(sf::View(visibleArea));
         _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
+    }
+
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
+
+    bool wasLocalMove = _game->isLocalMove();
+    _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
+    // Rotate the board if a valid move has been made
+    if (_game->isLocalMove() != wasLocalMove && !_game->nonLocalOpponent()) {
+        _boardView->flip();
     }
 
     if (const auto& keyPressed = event.getIf<sf::Event::KeyPressed>()) {
@@ -125,6 +133,7 @@ void GameState::handleEvent(const sf::Event& event) {
 }
 
 void GameState::update(sf::Time dt) {
+    // Handle mouse cursor
     if (_boardView->getState() == ui::State::Hovered && _context.cursors->handOpened) {
         _context.window->setMouseCursor(*(_context.cursors->handOpened));
     } else if (_boardView->getState() == ui::State::Pressed && _context.cursors->handClosed) {
@@ -167,23 +176,21 @@ void GameState::update(sf::Time dt) {
         });
     }
 
+    _boardView->update(dt);
+
     // TODO
     GameStatus status = _game->status();
     if (status != GameStatus::Active) {
         if (status == GameStatus::WhiteWon) {
-            std::cerr << "White won!\n";
+            std::cerr << "White won!";
         }
         else if (status == GameStatus::BlackWon) {
-            std::cerr << "Black won!\n";
+            std::cerr << "Black won!";
         }
         else {
             std::cerr << "Draw!";
         }
-        return;
     }
-    
-
-    _boardView->update(dt);
 }
 
 void GameState::render() {

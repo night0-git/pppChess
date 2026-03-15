@@ -148,6 +148,8 @@ void BoardView::onMoveEvent(const MoveResult& result) {
         return;
     }
 
+    _latestMove = result.move;
+
     // Delete old pieceview
     if (result.captured) {
         _pieceViews.erase(result.captured.get());
@@ -216,7 +218,9 @@ void BoardView::draw(sf::RenderTarget& target, sf::RenderStates states) const {
             square.setPosition({col * _theme.tileSize, row * _theme.tileSize});
             square.setFillColor((col + row) % 2 == 0 ? _theme.lightColor : _theme.darkColor);
             target.draw(square, states);
-            if (_selectedSqr == sf::Vector2i(row, col)) {
+
+            sf::Vector2i sqr = {row, col};
+            if (_selectedSqr == sqr || sqr == _latestMove.src || sqr == _latestMove.dest) {
                 // Draw an overlay for selected square
                 sf::Color yellow = {255, 235, 59, 100};
                 square.setFillColor(yellow);

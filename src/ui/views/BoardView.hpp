@@ -56,6 +56,10 @@ private:
     std::optional<sf::Vector2i> _selectedSqr = std::nullopt;
     bool _isDeselecting = false;
     
+    // Set this to an impossible value so no square is highligted
+    // at game start
+    Move _latestMove = Move({-1, -1}, {-1, -1});
+    
     sf::Vector2i localPosToSqr(const sf::Vector2f& localPos) const;
 };
 
