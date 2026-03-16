@@ -113,7 +113,7 @@ void GameState::handleEvent(const sf::Event& event) {
         _boardView->setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _boardView->getSize(), _boardView->getOrigin()));
     }
 
-    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition(*_context.window));
 
     bool wasLocalMove = _game->isLocalMove();
     _boardView->handleEvent(event, *(_context.window), mouseWorldPos);
@@ -180,7 +180,9 @@ void GameState::update(sf::Time dt) {
 
     // TODO
     GameStatus status = _game->status();
-    if (status != GameStatus::Active) {
+    static bool gameEnded = false;
+    if (!gameEnded && status != GameStatus::Active) {
+        gameEnded = true;
         if (status == GameStatus::WhiteWon) {
             std::cerr << "White won!";
         }

@@ -66,7 +66,7 @@ void MenuState::handleEvent(const sf::Event& event) {
         }
     }
 
-    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition(*_context.window));
     _menu.handleEvent(event, *_context.window, mouseWorldPos);
 }
 
