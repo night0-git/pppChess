@@ -16,6 +16,8 @@ MenuState::MenuState(Context& context) : State(context) {
     _banner.setSize(sf::Vector2f(_banner.getSize().x * 0.3, _banner.getSize().y * 0.3));
     _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
 
+    _enterIp.setPosition(_context.layoutManager->calculatePosition(Anchor::Center, _enterIp.getSize()));
+
     auto playOnline = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY ONLINE", _font);
     playOnline->setCallback([this]() {
         _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<RemotePlayer>(*(_context.socket))));
@@ -67,6 +69,7 @@ void MenuState::handleEvent(const sf::Event& event) {
     }
 
     sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition(*_context.window));
+    _enterIp.handleEvent(event, *_context.window, mouseWorldPos);
     _menu.handleEvent(event, *_context.window, mouseWorldPos);
 }
 
@@ -76,12 +79,15 @@ void MenuState::update(sf::Time dt) {
     } else if (_context.cursors->arrow) {
         _context.window->setMouseCursor(*(_context.cursors->arrow));
     }
+
+    _enterIp.update(dt);
 }
 
 void MenuState::render() {
     _context.window->clear(sf::Color(30, 30, 30));
     _context.window->draw(_banner);
     _context.window->draw(_menu);
+    _context.window->draw(_enterIp);
 }
 
 void MenuState::pause() {

@@ -32,7 +32,7 @@ _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundP
         _context.socket->setBlocking(true);
         _context.listener->setBlocking(false);
         // Start the listener if there is no listener to connect to yet
-        if (_context.socket->connect(sf::IpAddress::LocalHost, 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
+        if (_context.socket->connect(sf::IpAddress::resolve("192.168.1.90").value(), 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
             _isFirstOnlinePlayer = true;
             if (_context.listener->listen(5000) != sf::Socket::Status::Done) {
                 throw std::runtime_error("Cannot connect to port 5000.");
@@ -152,7 +152,7 @@ void GameState::update(sf::Time dt) {
                 _context.listener->close();
             }
         }
-        else if (_context.socket->connect(sf::IpAddress::LocalHost, 5000) == sf::Socket::Status::Done) {
+        else if (_context.socket->connect(sf::IpAddress::resolve("192.168.1.90").value(), 5000) == sf::Socket::Status::Done) {
             _connectionEstablished = true;
         }
     }
