@@ -6,8 +6,11 @@ I have implemented local mode, bot mode and a very simple local multiplayer mode
 ## Build and run
 To build, you must have cmake installed. Run the following command to build the project:
 ```
+cd pppChess
+cmake -B build
 ```
 Then run:
 ```
+./build/bin/pppChess
 ```
 Or, you could just go the the release page and download the pre-built binary for a glimpse of the game.
