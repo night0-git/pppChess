@@ -47,7 +47,7 @@ void SettingsState::handleEvent(const sf::Event& event) {
         }
     }
 
-    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition(*_context.window));
     _settingsMenu.handleEvent(event, *_context.window, mouseWorldPos);
 }
 

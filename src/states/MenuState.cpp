@@ -14,7 +14,6 @@ MenuState::MenuState(Context& context) : State(context) {
     _context.window->setView(sf::View(visibleArea));
     
     _banner.setSize(sf::Vector2f(_banner.getSize().x * 0.3, _banner.getSize().y * 0.3));
-    _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
 
     auto playOnline = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY ONLINE", _font);
     playOnline->setCallback([this]() {
@@ -44,7 +43,7 @@ MenuState::MenuState(Context& context) : State(context) {
     quit->setCallback([this]() { _context.window->close(); });
     _menu.addComponent(std::move(quit));
 
-    _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Bottom, _menu.getSize(), 100));
+    repositionComponents();
 }
 
 void MenuState::init() {
@@ -56,8 +55,7 @@ void MenuState::handleEvent(const sf::Event& event) {
     if (event.is<sf::Event::Resized>()) {
         sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
         _context.window->setView(sf::View(visibleArea));
-        _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
-        _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Bottom, _menu.getSize(), 100));
+        repositionComponents();
     }
 
     if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>()) {
@@ -66,7 +64,8 @@ void MenuState::handleEvent(const sf::Event& event) {
         }
     }
 
-    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition());
+    sf::Vector2f mouseWorldPos = _context.window->mapPixelToCoords(sf::Mouse::getPosition(*_context.window));
+    _enterIp.handleEvent(event, *_context.window, mouseWorldPos);
     _menu.handleEvent(event, *_context.window, mouseWorldPos);
 }
 
@@ -76,12 +75,15 @@ void MenuState::update(sf::Time dt) {
     } else if (_context.cursors->arrow) {
         _context.window->setMouseCursor(*(_context.cursors->arrow));
     }
+
+    _enterIp.update(dt);
 }
 
 void MenuState::render() {
     _context.window->clear(sf::Color(30, 30, 30));
     _context.window->draw(_banner);
     _context.window->draw(_menu);
+    _context.window->draw(_enterIp);
 }
 
 void MenuState::pause() {
@@ -91,4 +93,11 @@ void MenuState::pause() {
 void MenuState::resume() {
     sf::FloatRect visibleArea(sf::Vector2f(0, 0), sf::Vector2f(_context.window->getSize()));
     _context.window->setView(sf::View(visibleArea));
+}
+
+
+void MenuState::repositionComponents() {
+    _banner.setPosition(_context.layoutManager->calculatePosition(Anchor::Top, _banner.getSize(), 150));
+    _menu.setPosition(_context.layoutManager->calculatePosition(Anchor::Bottom, _menu.getSize(), 100));
+    _enterIp.setPosition(_menu.getPosition() - sf::Vector2f(0, _buttonSize.y + _padding));
 }

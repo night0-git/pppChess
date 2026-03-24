@@ -13,6 +13,8 @@ FetchContent_Declare(
     GIT_TAG 3.0.2
 )
 
+set(SFML_STATIC_LIBRARIES ON CACHE BOOL "Use static SFML libraries" FORCE)
+
 FetchContent_MakeAvailable(SFML)
 
 file(GLOB_RECURSE SRC_FILES "src/*.cpp" "src/*.hpp" "src/*.h")
@@ -21,6 +23,10 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/src")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+if(WIN32)
+    target_link_options(${PROJECT_NAME} PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
     SFML::Graphics
