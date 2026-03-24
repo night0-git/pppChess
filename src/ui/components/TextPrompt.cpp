@@ -16,6 +16,10 @@ TextPrompt::TextPrompt(sf::Vector2f size, const sf::Font& font, const std::strin
     normalizeText();
 }
 
+std::string TextPrompt::getText() const {
+    return _string;
+}
+
 void TextPrompt::clear() {
     _string.clear();
     _text.setString(_string);

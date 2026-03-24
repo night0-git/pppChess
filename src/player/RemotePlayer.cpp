@@ -1,8 +1,13 @@
 #include "RemotePlayer.hpp"
 #include "../game_logic/Board.hpp"
 
-RemotePlayer::RemotePlayer(sf::TcpSocket& socket) : _socket(socket) {
+RemotePlayer::RemotePlayer(sf::TcpSocket& socket, sf::IpAddress address)
+: _socket(socket), _address(address) {
     _socket.setBlocking(false);
+}
+
+sf::IpAddress RemotePlayer::address() const {
+    return _address;
 }
 
 std::optional<Move> RemotePlayer::getMove(Board& board, PieceColor color) {
