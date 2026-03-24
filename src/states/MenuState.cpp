@@ -17,7 +17,9 @@ MenuState::MenuState(Context& context) : State(context) {
 
     auto playOnline = std::make_unique<ui::Button>(_buttonSize, 50, "PLAY ONLINE", _font);
     playOnline->setCallback([this]() {
-        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<RemotePlayer>(*(_context.socket))));
+        // Validate ip here
+        sf::IpAddress addr = *sf::IpAddress::resolve(_enterIp.getText());
+        _context.states->pushState(std::make_unique<GameState>(_context, std::make_unique<RemotePlayer>(*(_context.socket), addr)));
     });
     _menu.addComponent(std::move(playOnline));
 

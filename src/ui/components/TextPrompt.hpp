@@ -12,6 +12,7 @@ class TextPrompt : public Component {
 public:
     TextPrompt(sf::Vector2f size, const sf::Font& font, const std::string& prompt, sf::Color boxColor = sf::Color::White, sf::Color textColor = sf::Color::Black, float offset = 15);
     
+    std::string getText() const;
     void clear();
 
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window, sf::Vector2f mouseWorldPos) override;

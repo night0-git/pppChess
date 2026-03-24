@@ -31,8 +31,9 @@ _boardView(std::make_shared<ui::BoardView>(*(context.textures), *(context.soundP
     if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))) {
         _context.socket->setBlocking(true);
         _context.listener->setBlocking(false);
+        _opponentAddr = dynamic_cast<RemotePlayer*>(_game->opponent())->address();
         // Start the listener if there is no listener to connect to yet
-        if (_context.socket->connect(sf::IpAddress::resolve("192.168.1.90").value(), 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
+        if (_context.socket->connect(_opponentAddr.value(), 5000, sf::seconds(0.2)) != sf::Socket::Status::Done) {
             _isFirstOnlinePlayer = true;
             if (_context.listener->listen(5000) != sf::Socket::Status::Done) {
                 throw std::runtime_error("Cannot connect to port 5000.");
@@ -86,6 +87,11 @@ void GameState::init() {
         // This allows the player interact with the board without
         // making a move if it's not their turn in non local mode
         if (_game->nonLocalOpponent() && !_game->isLocalMove()) {
+            return false;
+        }
+        // Prevent player from moving before finding an opponent
+        if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer))
+        && !_connectionEstablished) {
             return false;
         }
         if (_game->attemptMove(move)) {
@@ -152,7 +158,7 @@ void GameState::update(sf::Time dt) {
                 _context.listener->close();
             }
         }
-        else if (_context.socket->connect(sf::IpAddress::resolve("192.168.1.90").value(), 5000) == sf::Socket::Status::Done) {
+        else if (_context.socket->connect(_opponentAddr.value(), 5000) == sf::Socket::Status::Done) {
             _connectionEstablished = true;
         }
     }

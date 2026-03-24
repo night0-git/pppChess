@@ -7,6 +7,7 @@
 #include <memory>
 #include <atomic>
 #include <thread>
+#include <optional>
 #include <SFML/Network.hpp>
 
 class GameState : public State {
@@ -33,6 +34,7 @@ private:
     
     bool _isFirstOnlinePlayer;
     bool _connectionEstablished = false;
+    std::optional<sf::IpAddress> _opponentAddr = std::nullopt;
 };
 
 #endif
