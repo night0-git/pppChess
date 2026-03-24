@@ -27,6 +27,8 @@ private:
     sf::Texture _bannerTexture = sf::Texture("./assets/pppbanner.png");
     ui::Panel _banner = ui::Panel(_bannerTexture);
     ui::TextPrompt _enterIp = ui::TextPrompt(_buttonSize, _font, "Enter IP address...");
+    
+    void repositionComponents();
 };
 
 #endif
