@@ -23,12 +23,13 @@ Move ChessBot::getBestMove(Board& board, PieceColor botColor) {
 
         board.undoLastMoveInternal();
         
-        // Return at least one move
         if (!moveFound) {
             bestMove = move;
             moveFound = true;
         }
 
+        // These 2 checks could both fall through so we need the
+        // above fallback to ensure there is always a valid move
         if (isMaximizing) {
             if (eval > bestEval) {
                 bestEval = eval;
