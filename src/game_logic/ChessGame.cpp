@@ -18,7 +18,7 @@ void ChessGame::opponentMove() {
     auto move = _opponent->getMove(_board, _currentTurn);
 
     if (move.has_value()) {
-        // Ensure the the animation has finished
+        // Ensure the animation has finished
         std::this_thread::sleep_until(start + std::chrono::milliseconds(200));
 
         if (!attemptMove(move.value())) {
@@ -82,7 +82,6 @@ void ChessGame::addBoardObserver(std::shared_ptr<BoardObserver> observer) {
 bool ChessGame::attemptMove(Move move) {
     auto srcPtr = _board.getPieceAt(move.src);
     if (srcPtr && srcPtr->color() == _currentTurn) {
-
         auto notation = _board.getMoveNotation(move);
 
         MoveResult res = _board.movePiece(move);
