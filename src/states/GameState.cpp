@@ -148,6 +148,26 @@ void GameState::update(sf::Time dt) {
         _context.window->setMouseCursor(*(_context.cursors->arrow));
     }
     
+    // TODO
+    GameStatus status = _game->status();
+    if (status != GameStatus::Active) {
+        // The game has ended just now
+        if (!_gameEnded) {
+            _gameEnded = true;
+            if (status == GameStatus::WhiteWon) {
+                std::cerr << "White won!\n";
+            }
+            else if (status == GameStatus::BlackWon) {
+                std::cerr << "Black won!\n";
+            }
+            else {
+                std::cerr << "Draw!\n";
+            }
+        }
+        _boardView->update(dt);
+        return;
+    }
+    
     // Try to establish a connection in multiplayer mode
     if (_game->nonLocalOpponent() == std::type_index(typeid(RemotePlayer)) && !_connectionEstablished) {
         if (_isFirstOnlinePlayer) {
@@ -183,22 +203,6 @@ void GameState::update(sf::Time dt) {
     }
 
     _boardView->update(dt);
-
-    // TODO
-    GameStatus status = _game->status();
-    static bool gameEnded = false;
-    if (!gameEnded && status != GameStatus::Active) {
-        gameEnded = true;
-        if (status == GameStatus::WhiteWon) {
-            std::cerr << "White won!";
-        }
-        else if (status == GameStatus::BlackWon) {
-            std::cerr << "Black won!";
-        }
-        else {
-            std::cerr << "Draw!";
-        }
-    }
 }
 
 void GameState::render() {

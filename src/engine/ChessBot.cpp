@@ -11,6 +11,7 @@ Move ChessBot::getBestMove(Board& board, PieceColor botColor) {
     bool isMaximizing = botColor == PieceColor::White;
     int bestEval = isMaximizing ? INT_MIN : INT_MAX;
 
+    bool moveFound = false;
     for (const auto& move : moves) {
         board.applyMoveInternal(move);
         if (board.isChecked(botColor)) {
@@ -21,7 +22,14 @@ Move ChessBot::getBestMove(Board& board, PieceColor botColor) {
         int eval = alphaBeta(board, _maxDepth - 1, INT_MIN, INT_MAX, !isMaximizing);
 
         board.undoLastMoveInternal();
+        
+        if (!moveFound) {
+            bestMove = move;
+            moveFound = true;
+        }
 
+        // These 2 checks could both fall through so we need the
+        // above fallback to ensure there is always a valid move
         if (isMaximizing) {
             if (eval > bestEval) {
                 bestEval = eval;

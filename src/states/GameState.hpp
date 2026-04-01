@@ -27,6 +27,7 @@ public:
 
 private:
     std::shared_ptr<ChessGame> _game;
+    bool _gameEnded = false;
     std::shared_ptr<ui::BoardView> _boardView;
 
     std::atomic<bool> _isOpponentThinking = false;
